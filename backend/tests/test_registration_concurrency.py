@@ -82,7 +82,9 @@ def test_registro_simultaneo_misma_invitacion():
     }
 
     try:
-        # Comprobar el estado inicial de Testing.
+        # Verificar estructura de Testing, sin exigir una base vacia.
+        # Las empresas, usuarios y permisos persistentes de Testing son validos;
+        # el escenario concurrente usa identificadores temporales propios.
         with engine.connect() as conexion:
             conexion.execute(text("SET TRANSACTION READ ONLY"))
 
@@ -95,12 +97,12 @@ def test_registro_simultaneo_misma_invitacion():
                 "usuarios_roles",
                 "roles_permisos",
             ):
-                cantidad = conexion.execute(
-                    text(f"SELECT COUNT(*) FROM public.{tabla}")
-                ).scalar_one()
-
-                assert cantidad == 0, (
-                    f"Testing no está limpio: {tabla}={cantidad}"
+                existe = conexion.scalar(
+                    text("SELECT to_regclass(:nombre_tabla)"),
+                    {"nombre_tabla": f"public.{tabla}"},
+                )
+                assert existe is not None, (
+                    f"Falta tabla requerida en PostgreSQL Testing: public.{tabla}"
                 )
 
         # Preparación: datos confirmados para ambas conexiones.

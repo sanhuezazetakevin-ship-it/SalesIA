@@ -93,10 +93,11 @@ def test_registro_concurrente_mismo_documento():
     documento = "12345678"
 
     try:
-        # 1. Comprobar que Testing esta limpio.
+        # 1. Verificar la existencia de las tablas, sin exigir una base vacia.
+        # Testing contiene datos de configuracion y seeds persistentes.
+        # Cada escenario utiliza identificadores exclusivos y limpieza acotada.
         with engine.connect() as conexion:
             conexion.execute(text("SET TRANSACTION READ ONLY"))
-
             for tabla in (
                 "empresas",
                 "usuarios",
@@ -106,13 +107,11 @@ def test_registro_concurrente_mismo_documento():
                 "auditoria",
                 "clientes",
             ):
-                cantidad = conexion.execute(
-                    text(f"SELECT COUNT(*) FROM public.{tabla}")
+                existe = conexion.execute(
+                    text("SELECT to_regclass(:tabla) IS NOT NULL"),
+                    {"tabla": f"public.{tabla}"},
                 ).scalar_one()
-
-                assert cantidad == 0, (
-                    f"Testing no esta limpio: {tabla}={cantidad}"
-                )
+                assert existe, f"Falta la tabla requerida: public.{tabla}"
 
         # 2. Crear un escenario temporal confirmado.
         with TestingSession() as db:
@@ -361,10 +360,11 @@ def test_desactivacion_concurrente_genera_una_sola_auditoria():
     }
 
     try:
-        # 1. Verificar que Testing esta limpio.
+        # 1. Verificar la existencia de las tablas, sin exigir una base vacia.
+        # Testing contiene datos de configuracion y seeds persistentes.
+        # Cada escenario utiliza identificadores exclusivos y limpieza acotada.
         with engine.connect() as conexion:
             conexion.execute(text("SET TRANSACTION READ ONLY"))
-
             for tabla in (
                 "empresas",
                 "usuarios",
@@ -376,13 +376,11 @@ def test_desactivacion_concurrente_genera_una_sola_auditoria():
                 "auditoria",
                 "clientes",
             ):
-                cantidad = conexion.execute(
-                    text(f"SELECT COUNT(*) FROM public.{tabla}")
+                existe = conexion.execute(
+                    text("SELECT to_regclass(:tabla) IS NOT NULL"),
+                    {"tabla": f"public.{tabla}"},
                 ).scalar_one()
-
-                assert cantidad == 0, (
-                    f"Testing no esta limpio: {tabla}={cantidad}"
-                )
+                assert existe, f"Falta la tabla requerida: public.{tabla}"
 
         # 2. Crear datos temporales confirmados.
         # Las dos conexiones deben poder consultarlos.

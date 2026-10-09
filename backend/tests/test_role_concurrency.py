@@ -114,23 +114,17 @@ def test_asignacion_simultanea_no_duplica_rol_ni_auditoria():
     permisos_creados = {}
 
     try:
-        # 1. Comprobar limpieza inicial de Testing.
+        # 1. Verificar la existencia de las tablas, sin exigir una base vacia.
+        # Testing contiene datos de configuracion y seeds persistentes.
+        # Cada escenario utiliza identificadores exclusivos y limpieza acotada.
         with engine.connect() as conexion:
-            conexion.execute(
-                text("SET TRANSACTION READ ONLY")
-            )
-
+            conexion.execute(text("SET TRANSACTION READ ONLY"))
             for tabla in TABLAS_AUDITADAS:
-                cantidad = conexion.execute(
-                    text(
-                        f"SELECT COUNT(*) FROM public.{tabla}"
-                    )
+                existe = conexion.execute(
+                    text("SELECT to_regclass(:tabla) IS NOT NULL"),
+                    {"tabla": f"public.{tabla}"},
                 ).scalar_one()
-
-                assert cantidad == 0, (
-                    f"Testing no esta limpio: "
-                    f"{tabla}={cantidad}"
-                )
+                assert existe, f"Falta la tabla requerida: public.{tabla}"
 
         # 2. Preparar datos confirmados.
         with TestingSession() as db:
@@ -427,20 +421,17 @@ def test_revocaciones_cruzadas_conservan_un_administrador():
     permisos_creados = {}
 
     try:
-        # 1. Verificar que Testing esta limpio.
+        # 1. Verificar la existencia de las tablas, sin exigir una base vacia.
+        # Testing contiene datos de configuracion y seeds persistentes.
+        # Cada escenario utiliza identificadores exclusivos y limpieza acotada.
         with engine.connect() as conexion:
-            conexion.execute(
-                text("SET TRANSACTION READ ONLY")
-            )
-
+            conexion.execute(text("SET TRANSACTION READ ONLY"))
             for tabla in TABLAS_AUDITADAS:
-                cantidad = conexion.execute(
-                    text(f"SELECT COUNT(*) FROM public.{tabla}")
+                existe = conexion.execute(
+                    text("SELECT to_regclass(:tabla) IS NOT NULL"),
+                    {"tabla": f"public.{tabla}"},
                 ).scalar_one()
-
-                assert cantidad == 0, (
-                    f"Testing no esta limpio: {tabla}={cantidad}"
-                )
+                assert existe, f"Falta la tabla requerida: public.{tabla}"
 
         # 2. Crear dos administradores con el mismo rol.
         with TestingSession() as db:

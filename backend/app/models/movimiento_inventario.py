@@ -30,6 +30,11 @@ class MovimientoInventario(Base):
             name="fk_movimiento_entrega_empresa",
         ),
 
+        ForeignKeyConstraint(
+            ["recepcion_compra_id", "empresa_id"],
+            ["recepciones_compra.id", "recepciones_compra.empresa_id"],
+            name="fk_movimiento_recepcion_compra_empresa",
+        ),
         CheckConstraint(
             "tipo_movimiento IN ('ENTRADA', 'SALIDA', 'AJUSTE')",
             name="ck_movimiento_tipo"
@@ -87,3 +92,5 @@ class MovimientoInventario(Base):
         Integer,
         nullable=True,
 )
+    # FASE 09: referencia a entrada por compra; entrega_id permanece intacto.
+    recepcion_compra_id: Mapped[int | None] = mapped_column(Integer, nullable=True)

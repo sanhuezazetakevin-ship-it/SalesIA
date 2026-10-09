@@ -39,3 +39,11 @@ from app.models.asociaciones import (
     usuarios_roles,
     roles_permisos
 )
+
+# FASE 09-B: compras y proveedores
+from app.models.proveedor import Proveedor
+from app.models.orden_compra import OrdenCompra
+from app.models.orden_compra_detalle import OrdenCompraDetalle
+from app.models.recepcion_compra import RecepcionCompra
+from app.models.recepcion_compra_detalle import RecepcionCompraDetalle
+from app.models.pago_proveedor import PagoProveedor

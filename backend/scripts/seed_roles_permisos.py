@@ -17,7 +17,6 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 import app.models
 
-from app.database.connection import SessionLocal
 from app.models.empresa import Empresa
 from app.models.rol import Rol
 from app.models.permiso import Permiso
@@ -43,6 +42,18 @@ CATALOGO = {
 "categorias": (
     "ver", "crear", "editar",
 ),
+    "proveedores": (
+        "ver", "crear", "editar",
+    ),
+    "compras": (
+        "ver", "crear", "confirmar", "cancelar",
+    ),
+    "recepciones": (
+        "ver", "crear",
+    ),
+    "pagos_proveedores": (
+        "ver", "registrar", "anular",
+    ),
     "inventario": (
         "ver", "ajustar",
     ),
@@ -97,6 +108,10 @@ ROLES = {
         "permisos": (
             codigos(
                 "clientes",
+                "proveedores",
+                "compras",
+                "recepciones",
+                "pagos_proveedores",
                 "productos",
                 "categorias",
                 "pedidos",
@@ -119,6 +134,11 @@ ROLES = {
             codigos("clientes", "pedidos", "ventas")
             | {
                 "productos.ver",
+                "proveedores.ver",
+                "compras.ver",
+                "compras.crear",
+                "recepciones.ver",
+                "pagos_proveedores.ver",
                 "inventario.ver",
                 "categorias.ver",
                 "entregas.ver",
@@ -133,6 +153,11 @@ ROLES = {
             codigos("inventario", "entregas")
             | {
                 "productos.ver",
+                "proveedores.ver",
+                "compras.ver",
+                "recepciones.ver",
+                "recepciones.crear",
+                "pagos_proveedores.ver",
                 "categorias.ver",
                 "pedidos.ver",
                 "ventas.ver",
@@ -145,6 +170,10 @@ ROLES = {
             codigos("analitica", "reportes")
             | {
                 "clientes.ver",
+                "proveedores.ver",
+                "compras.ver",
+                "recepciones.ver",
+                "pagos_proveedores.ver",
                 "productos.ver",
                 "inventario.ver",
                 "categorias.ver",
@@ -347,33 +376,9 @@ def ejecutar_seed(
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Seed empresarial de SalesIA"
-    )
-
-    parser.add_argument(
-        "--empresa-id",
-        type=int,
-        required=True,
-        help="ID de una empresa existente y activa",
-    )
-
-    parser.add_argument(
-        "--apply",
-        action="store_true",
-        help="Confirmar los cambios en PostgreSQL",
-    )
-
-    args = parser.parse_args()
-
-    if args.empresa_id <= 0:
-        parser.error(
-            "--empresa-id debe ser un entero positivo"
-        )
-
-        parser.error(
-        "Ejecución directa deshabilitada por seguridad. "
-        "Utilice el ejecutor específico de Testing."
+    raise SystemExit(
+        "SEGURIDAD: ejecución directa bloqueada. "
+        "Use python -m scripts.preparar_rbac_testing en PostgreSQL Testing."
     )
 
 

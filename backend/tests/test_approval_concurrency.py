@@ -117,23 +117,17 @@ def test_aprobacion_simultanea_genera_una_sola_auditoria():
     }
 
     try:
-        # 1. Comprobar que Testing está limpio.
+        # 1. Verificar la existencia de las tablas, sin exigir una base vacia.
+        # Testing contiene datos de configuracion y seeds persistentes.
+        # Cada escenario utiliza identificadores exclusivos y limpieza acotada.
         with engine.connect() as conexion:
-            conexion.execute(
-                text("SET TRANSACTION READ ONLY")
-            )
-
+            conexion.execute(text("SET TRANSACTION READ ONLY"))
             for tabla in TABLAS_AUDITADAS:
-                cantidad = conexion.execute(
-                    text(
-                        f"SELECT COUNT(*) FROM public.{tabla}"
-                    )
+                existe = conexion.execute(
+                    text("SELECT to_regclass(:tabla) IS NOT NULL"),
+                    {"tabla": f"public.{tabla}"},
                 ).scalar_one()
-
-                assert cantidad == 0, (
-                    f"Testing no está limpio: "
-                    f"{tabla}={cantidad}"
-                )
+                assert existe, f"Falta la tabla requerida: public.{tabla}"
 
         # 2. Crear datos confirmados para que ambas
         # conexiones independientes puedan consultarlos.

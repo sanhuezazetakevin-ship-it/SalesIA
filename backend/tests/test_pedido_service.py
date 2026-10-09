@@ -38,6 +38,7 @@ from app.services.pedido_service import (
     obtener_pedido,
     listar_pedidos,
     confirmar_pedido,
+    cancelar_pedido,
 )
 
 def preparar_empresa(
@@ -664,6 +665,7 @@ def _escenario_confirmacion(db, *, permisos=None):
             "pedidos.crear",
             "pedidos.ver",
             "pedidos.confirmar",
+            "pedidos.cancelar",
         )
 
     e = preparar_empresa(db, permisos=permisos)
@@ -900,3 +902,312 @@ def test_producto_sin_control_stock_no_genera_reserva(db_testing):
     assert resultado.estado == "CONFIRMADO"
     assert contar(db, ReservaStock, e["empresa_id"]) == 0
     assert contar(db, MovimientoInventario, e["empresa_id"]) == 0
+
+# ==========================================================
+# FASE 08-C.9.1 — CANCELACION DE PEDIDOS
+# ==========================================================
+
+
+def test_cancelar_borrador_sin_afectar_inventario(db_testing):
+    db = db_testing
+    e = _escenario_confirmacion(db)
+
+    pedido = _crear_borrador_confirmacion(db, e)
+
+    resultado = cancelar_pedido(
+        db,
+        usuario_id=e["usuario_id"],
+        pedido_id=pedido.id,
+    )
+
+    assert resultado.estado == "CANCELADO"
+
+    db.expire_all()
+
+    pedido_db = db.get(Pedido, pedido.id)
+    inventario = db.get(Inventario, e["inventario_id"])
+
+    assert pedido_db.estado == "CANCELADO"
+    assert inventario.cantidad_disponible == Decimal("10.000")
+
+    assert contar(
+        db,
+        ReservaStock,
+        e["empresa_id"],
+    ) == 0
+
+    assert contar(
+        db,
+        MovimientoInventario,
+        e["empresa_id"],
+    ) == 0
+
+
+def test_cancelar_confirmado_libera_reserva(db_testing):
+    db = db_testing
+    e = _escenario_confirmacion(db)
+
+    pedido = _crear_borrador_confirmacion(
+        db,
+        e,
+        cantidad="2.000",
+    )
+
+    confirmar_pedido(
+        db,
+        usuario_id=e["usuario_id"],
+        pedido_id=pedido.id,
+    )
+
+    reserva = db.scalar(
+        select(ReservaStock).where(
+            ReservaStock.empresa_id == e["empresa_id"],
+            ReservaStock.pedido_id == pedido.id,
+        )
+    )
+
+    assert reserva is not None
+    assert reserva.estado == "ACTIVA"
+
+    resultado = cancelar_pedido(
+        db,
+        usuario_id=e["usuario_id"],
+        pedido_id=pedido.id,
+    )
+
+    assert resultado.estado == "CANCELADO"
+
+    db.expire_all()
+
+    reserva = db.get(ReservaStock, reserva.id)
+    inventario = db.get(Inventario, e["inventario_id"])
+
+    assert reserva.estado == "LIBERADA"
+    assert reserva.cantidad_reservada == Decimal("2.000")
+
+    # Cancelar no descuenta ni repone stock físico.
+    assert inventario.cantidad_disponible == Decimal("10.000")
+
+    assert contar(
+        db,
+        MovimientoInventario,
+        e["empresa_id"],
+    ) == 0
+
+
+def test_cancelacion_registra_auditoria(db_testing):
+    db = db_testing
+    e = _escenario_confirmacion(db)
+
+    pedido = _crear_borrador_confirmacion(db, e)
+
+    cancelar_pedido(
+        db,
+        usuario_id=e["usuario_id"],
+        pedido_id=pedido.id,
+    )
+
+    auditorias = db.scalars(
+        select(Auditoria).where(
+            Auditoria.empresa_id == e["empresa_id"],
+            Auditoria.usuario_id == e["usuario_id"],
+            Auditoria.entidad == "pedidos",
+            Auditoria.entidad_id == pedido.id,
+            Auditoria.accion == "CANCELAR",
+        )
+    ).all()
+
+    assert len(auditorias) == 1
+
+    auditoria = auditorias[0]
+
+    assert auditoria.datos_anteriores["estado"] == "BORRADOR"
+    assert auditoria.datos_nuevos["estado"] == "CANCELADO"
+    assert auditoria.datos_nuevos["numero_reservas_liberadas"] == 0
+
+
+def test_cancelacion_confirmado_audita_reserva_liberada(db_testing):
+    db = db_testing
+    e = _escenario_confirmacion(db)
+
+    pedido = _crear_borrador_confirmacion(
+        db,
+        e,
+        cantidad="3.000",
+    )
+
+    confirmar_pedido(
+        db,
+        usuario_id=e["usuario_id"],
+        pedido_id=pedido.id,
+    )
+
+    cancelar_pedido(
+        db,
+        usuario_id=e["usuario_id"],
+        pedido_id=pedido.id,
+    )
+
+    auditoria = db.scalar(
+        select(Auditoria).where(
+            Auditoria.empresa_id == e["empresa_id"],
+            Auditoria.entidad == "pedidos",
+            Auditoria.entidad_id == pedido.id,
+            Auditoria.accion == "CANCELAR",
+        )
+    )
+
+    assert auditoria is not None
+    assert auditoria.datos_anteriores["estado"] == "CONFIRMADO"
+    assert auditoria.datos_nuevos["estado"] == "CANCELADO"
+    assert auditoria.datos_nuevos["numero_reservas_liberadas"] == 1
+
+
+def test_no_permite_cancelar_dos_veces(db_testing):
+    db = db_testing
+    e = _escenario_confirmacion(db)
+
+    pedido = _crear_borrador_confirmacion(db, e)
+
+    cancelar_pedido(
+        db,
+        usuario_id=e["usuario_id"],
+        pedido_id=pedido.id,
+    )
+
+    with pytest.raises(
+        PedidoServiceError,
+        match="ya se encuentra CANCELADO",
+    ):
+        cancelar_pedido(
+            db,
+            usuario_id=e["usuario_id"],
+            pedido_id=pedido.id,
+        )
+
+    db.expire_all()
+
+    assert db.get(Pedido, pedido.id).estado == "CANCELADO"
+
+
+def test_cancelacion_requiere_permiso(db_testing):
+    db = db_testing
+
+    e = _escenario_confirmacion(
+        db,
+        permisos=(
+            "pedidos.crear",
+            "pedidos.ver",
+            "pedidos.confirmar",
+        ),
+    )
+
+    pedido = _crear_borrador_confirmacion(db, e)
+
+    with pytest.raises(
+        PedidoServiceError,
+        match="autorizacion",
+    ):
+        cancelar_pedido(
+            db,
+            usuario_id=e["usuario_id"],
+            pedido_id=pedido.id,
+        )
+
+    db.expire_all()
+
+    assert db.get(Pedido, pedido.id).estado == "BORRADOR"
+
+
+def test_no_cancela_pedido_de_otra_empresa(db_testing):
+    db = db_testing
+
+    a = _escenario_confirmacion(db)
+    b = _escenario_confirmacion(db)
+
+    pedido_b = _crear_borrador_confirmacion(db, b)
+
+    with pytest.raises(PedidoServiceError):
+        cancelar_pedido(
+            db,
+            usuario_id=a["usuario_id"],
+            pedido_id=pedido_b.id,
+        )
+
+    db.expire_all()
+
+    assert db.get(Pedido, pedido_b.id).estado == "BORRADOR"
+
+
+def test_cancelar_confirmado_libera_stock_para_otro_pedido(db_testing):
+    db = db_testing
+    e = _escenario_confirmacion(db)
+
+    primero = _crear_borrador_confirmacion(
+        db,
+        e,
+        cantidad="7.000",
+    )
+
+    segundo = _crear_borrador_confirmacion(
+        db,
+        e,
+        cantidad="6.000",
+    )
+
+    confirmar_pedido(
+        db,
+        usuario_id=e["usuario_id"],
+        pedido_id=primero.id,
+    )
+
+    # 10 físico - 7 reservado = 3 comercialmente disponibles.
+    with pytest.raises(
+        PedidoServiceError,
+        match="Stock insuficiente",
+    ):
+        confirmar_pedido(
+            db,
+            usuario_id=e["usuario_id"],
+            pedido_id=segundo.id,
+        )
+
+    cancelar_pedido(
+        db,
+        usuario_id=e["usuario_id"],
+        pedido_id=primero.id,
+    )
+
+    # La reserva de 7 fue liberada. Ahora vuelven a existir
+    # 10 unidades comerciales disponibles.
+    segundo_confirmado = confirmar_pedido(
+        db,
+        usuario_id=e["usuario_id"],
+        pedido_id=segundo.id,
+    )
+
+    assert segundo_confirmado.estado == "CONFIRMADO"
+
+    reservas_segundo = db.scalars(
+        select(ReservaStock).where(
+            ReservaStock.empresa_id == e["empresa_id"],
+            ReservaStock.pedido_id == segundo.id,
+            ReservaStock.estado == "ACTIVA",
+        )
+    ).all()
+
+    assert len(reservas_segundo) == 1
+    assert (
+        reservas_segundo[0].cantidad_reservada
+        == Decimal("6.000")
+    )
+
+    db.expire_all()
+
+    inventario = db.get(
+        Inventario,
+        e["inventario_id"],
+    )
+
+    # El stock físico sigue intacto.
+    assert inventario.cantidad_disponible == Decimal("10.000")

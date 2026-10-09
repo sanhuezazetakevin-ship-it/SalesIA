@@ -101,7 +101,6 @@ class PedidoCreate(BaseModel):
 
         return self
 
-
 class PedidoDetalleResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -119,6 +118,8 @@ class PedidoDetalleResponse(BaseModel):
     subtotal: Decimal
     impuesto: Decimal
     total: Decimal
+
+    tasa_impuesto: Decimal | None
 
 
 class PedidoResponse(BaseModel):
