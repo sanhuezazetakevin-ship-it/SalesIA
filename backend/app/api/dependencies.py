@@ -32,7 +32,7 @@ def get_current_user(
     el JWT y su sesión persistida en PostgreSQL.
     """
 
-    if credentials is None:
+    if credentials is None or credentials.scheme.lower() != "bearer":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="No se proporcionaron credenciales.",

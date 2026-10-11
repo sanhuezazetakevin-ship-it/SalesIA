@@ -1,0 +1,116 @@
+{
+  "nota": "Mediciones del cuerpo de cada test; no son latencias de produccion ni incluyen preparacion de fixtures.",
+  "resultados": [
+    {
+      "prueba": "tests/test_fase145_http_jwt_pg_real.py::test_aislamiento_http_entre_empresas",
+      "duracion_test_ms": 1925.841,
+      "consultas_sql_durante_test": 18,
+      "sql_total_ms": 1857.131,
+      "sql_mediana_ms": 101.756,
+      "sql_p95_ms": 120.386,
+      "sql_max_ms": 120.386
+    },
+    {
+      "prueba": "tests/test_fase145_http_jwt_pg_real.py::test_anonimo_y_token_invalido_rechazados",
+      "duracion_test_ms": 90.106,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_fase145_http_jwt_pg_real.py::test_jwt_real_y_rbac_real",
+      "duracion_test_ms": 1340.829,
+      "consultas_sql_durante_test": 11,
+      "sql_total_ms": 1286.082,
+      "sql_mediana_ms": 94.032,
+      "sql_p95_ms": 205.307,
+      "sql_max_ms": 205.307
+    },
+    {
+      "prueba": "tests/test_fase145_http_jwt_pg_real.py::test_linea_base_latencia_autenticada",
+      "duracion_test_ms": 12258.355,
+      "consultas_sql_durante_test": 78,
+      "sql_total_ms": 12036.539,
+      "sql_mediana_ms": 118.364,
+      "sql_p95_ms": 305.584,
+      "sql_max_ms": 402.955
+    },
+    {
+      "prueba": "tests/test_fase145_http_jwt_pg_real.py::test_parametros_invalidos_autenticado",
+      "duracion_test_ms": 637.003,
+      "consultas_sql_durante_test": 6,
+      "sql_total_ms": 589.757,
+      "sql_mediana_ms": 98.934,
+      "sql_p95_ms": 103.082,
+      "sql_max_ms": 103.082
+    },
+    {
+      "prueba": "tests/test_fase145_http_jwt_pg_real.py::test_repeticion_listado_no_duplica_alertas",
+      "duracion_test_ms": 1908.011,
+      "consultas_sql_durante_test": 18,
+      "sql_total_ms": 1853.613,
+      "sql_mediana_ms": 98.686,
+      "sql_p95_ms": 160.635,
+      "sql_max_ms": 160.635
+    },
+    {
+      "prueba": "tests/test_fase145_http_jwt_pg_real.py::test_respuesta_no_expone_token_ni_hash",
+      "duracion_test_ms": 921.925,
+      "consultas_sql_durante_test": 6,
+      "sql_total_ms": 893.893,
+      "sql_mediana_ms": 98.707,
+      "sql_p95_ms": 409.134,
+      "sql_max_ms": 409.134
+    },
+    {
+      "prueba": "tests/test_fase145_http_jwt_pg_real.py::test_revocacion_invalida_jwt_vigente",
+      "duracion_test_ms": 916.47,
+      "consultas_sql_durante_test": 8,
+      "sql_total_ms": 781.638,
+      "sql_mediana_ms": 98.394,
+      "sql_p95_ms": 103.901,
+      "sql_max_ms": 103.901
+    },
+    {
+      "prueba": "tests/test_fase145_integracion_pg.py::test_bd_testing_aislamiento_lectura_y_escritura",
+      "duracion_test_ms": 2146.004,
+      "consultas_sql_durante_test": 12,
+      "sql_total_ms": 2086.511,
+      "sql_mediana_ms": 196.09,
+      "sql_p95_ms": 230.162,
+      "sql_max_ms": 230.162
+    },
+    {
+      "prueba": "tests/test_fase145_integracion_pg.py::test_bd_testing_restriccion_clave_por_empresa",
+      "duracion_test_ms": 815.87,
+      "consultas_sql_durante_test": 4,
+      "sql_total_ms": 809.46,
+      "sql_mediana_ms": 119.257,
+      "sql_p95_ms": 480.962,
+      "sql_max_ms": 480.962
+    },
+    {
+      "prueba": "tests/test_fase145_integracion_pg.py::test_http_rechaza_limite_invalido",
+      "duracion_test_ms": 12.542,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_fase145_integracion_pg.py::test_http_ruta_requiere_credenciales_sin_override",
+      "duracion_test_ms": 19.64,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    }
+  ],
+  "fallos": [],
+  "modulo": "notificaciones",
+  "nota_adicional": "Perfil del cuerpo de pruebas. Incluye SQL de preparación dentro del test; algunos tests de dashboard usan mocks y no miden su consulta real. No representa latencia de Railway en producción."
+}

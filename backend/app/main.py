@@ -23,6 +23,14 @@ from app.api.routes.analytics_distribuciones import router as analytics_distribu
 from app.api.routes.analytics_probabilidades import router as analytics_probabilidades_router
 from app.api.routes.analytics_historial import router as analytics_historial_router
 
+from app.api.routes.dashboard import router as dashboard_router
+from app.api.routes.insights import router as insights_router
+from app.api.routes.reportes import router as reportes_router
+from app.api.routes.auditoria import router as auditoria_router
+from app.api.routes.mejoras145 import router as mejoras145_router
+from app.api.routes.semana08 import router as semana08_router
+from app.api.routes.notificaciones145 import router as notificaciones145_router
+
 app = FastAPI(
     title=settings.APP_NAME,
     version="1.0.0",
@@ -56,6 +64,13 @@ app.include_router(analytics_router)
 app.include_router(analytics_distribuciones_router)
 app.include_router(analytics_probabilidades_router)
 app.include_router(analytics_historial_router)
+app.include_router(dashboard_router)
+app.include_router(insights_router)
+app.include_router(reportes_router)
+app.include_router(auditoria_router)
+app.include_router(mejoras145_router)
+app.include_router(semana08_router)
+app.include_router(notificaciones145_router)
 
 
 @app.get("/")
@@ -76,3 +91,15 @@ def health():
 
 
 
+
+
+@app.middleware("http")
+async def cabeceras_seguridad(request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    response.headers.setdefault("Cache-Control", "no-store")
+    if settings.ENVIRONMENT == "production" and request.url.scheme == "https":
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
+    return response

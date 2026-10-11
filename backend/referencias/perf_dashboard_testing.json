@@ -1,0 +1,98 @@
+{
+  "nota": "Mediciones del cuerpo de cada test; no son latencias de produccion ni incluyen preparacion de fixtures.",
+  "resultados": [
+    {
+      "prueba": "tests/test_dashboard_comercial_http.py::test_dashboard_comercial_en_openapi",
+      "duracion_test_ms": 989.553,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_dashboard_comercial_http.py::test_dashboard_comercial_error_permiso",
+      "duracion_test_ms": 24.088,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_dashboard_comercial_http.py::test_dashboard_comercial_parametros_invalidos",
+      "duracion_test_ms": 26.672,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_dashboard_comercial_http.py::test_dashboard_comercial_respuesta",
+      "duracion_test_ms": 101.738,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_dashboard_http_contrato.py::test_dashboard_endpoint_documentado",
+      "duracion_test_ms": 0.6,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_dashboard_http_contrato.py::test_dashboard_http_con_dependencias_simuladas",
+      "duracion_test_ms": 34.915,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_railway_opt_series.py::test_serie_filtra_tenant_y_estado_confirmado",
+      "duracion_test_ms": 12.216,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_railway_opt_series.py::test_serie_optimizada_meses_vacios",
+      "duracion_test_ms": 1.253,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_railway_opt_series.py::test_serie_optimizada_una_consulta_y_dias_vacios",
+      "duracion_test_ms": 104.72,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_railway_opt_series.py::test_serie_respeta_maximo_registros",
+      "duracion_test_ms": 3.38,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    }
+  ],
+  "fallos": [],
+  "modulo": "dashboard",
+  "nota_adicional": "Perfil del cuerpo de pruebas. Incluye SQL de preparación dentro del test; algunos tests de dashboard usan mocks y no miden su consulta real. No representa latencia de Railway en producción."
+}

@@ -1,0 +1,2 @@
+Estado: cuatro tests locales de generación y servicio aprobados; test OpenAPI omitido por falta de psycopg en entorno de construcción. En Windows ejecutar test suite y escenarios reales PostgreSQL testing antes de desplegar.
+Esta entrega agrega solamente un endpoint PDF directo; mantiene API de reportes anterior con archivos en disco, que continúa requiriendo almacenamiento persistente si sigue usándose.

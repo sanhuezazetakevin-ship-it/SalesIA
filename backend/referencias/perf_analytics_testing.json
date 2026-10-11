@@ -1,0 +1,233 @@
+{
+  "nota": "Mediciones del cuerpo de cada test; no son latencias de produccion ni incluyen preparacion de fixtures.",
+  "resultados": [
+    {
+      "prueba": "tests/test_analytics_distribuciones_integracion.py::test_distribuciones_aislamiento_multiempresa",
+      "duracion_test_ms": 14100.224,
+      "consultas_sql_durante_test": 136,
+      "sql_total_ms": 13705.007,
+      "sql_mediana_ms": 95.325,
+      "sql_p95_ms": 119.848,
+      "sql_max_ms": 210.436
+    },
+    {
+      "prueba": "tests/test_analytics_distribuciones_integracion.py::test_distribuciones_estado_pago_categorias",
+      "duracion_test_ms": 10836.904,
+      "consultas_sql_durante_test": 102,
+      "sql_total_ms": 10575.825,
+      "sql_mediana_ms": 96.156,
+      "sql_p95_ms": 121.606,
+      "sql_max_ms": 205.346
+    },
+    {
+      "prueba": "tests/test_analytics_distribuciones_integracion.py::test_distribuciones_filtro_utc",
+      "duracion_test_ms": 8620.057,
+      "consultas_sql_durante_test": 82,
+      "sql_total_ms": 8363.78,
+      "sql_mediana_ms": 94.093,
+      "sql_p95_ms": 124.676,
+      "sql_max_ms": 202.272
+    },
+    {
+      "prueba": "tests/test_analytics_distribuciones_integracion.py::test_distribuciones_intervalos_y_estados_venta",
+      "duracion_test_ms": 10186.48,
+      "consultas_sql_durante_test": 94,
+      "sql_total_ms": 9925.29,
+      "sql_mediana_ms": 97.52,
+      "sql_p95_ms": 137.182,
+      "sql_max_ms": 223.517
+    },
+    {
+      "prueba": "tests/test_analytics_distribuciones_integracion.py::test_distribuciones_sin_jwt_rechazado",
+      "duracion_test_ms": 29.379,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_analytics_distribuciones_integracion.py::test_distribuciones_sin_permiso",
+      "duracion_test_ms": 3209.633,
+      "consultas_sql_durante_test": 30,
+      "sql_total_ms": 3051.161,
+      "sql_mediana_ms": 97.466,
+      "sql_p95_ms": 121.674,
+      "sql_max_ms": 131.872
+    },
+    {
+      "prueba": "tests/test_analytics_distribuciones_integracion.py::test_distribuciones_vacias_jwt_real",
+      "duracion_test_ms": 8195.95,
+      "consultas_sql_durante_test": 70,
+      "sql_total_ms": 7941.466,
+      "sql_mediana_ms": 102.09,
+      "sql_p95_ms": 182.808,
+      "sql_max_ms": 414.33
+    },
+    {
+      "prueba": "tests/test_analytics_distribuciones_integracion.py::test_distribuciones_validacion_parametros",
+      "duracion_test_ms": 7812.916,
+      "consultas_sql_durante_test": 69,
+      "sql_total_ms": 7568.398,
+      "sql_mediana_ms": 100.205,
+      "sql_p95_ms": 144.918,
+      "sql_max_ms": 402.224
+    },
+    {
+      "prueba": "tests/test_analytics_distribuciones_integracion.py::test_distribuciones_validacion_periodo",
+      "duracion_test_ms": 7246.236,
+      "consultas_sql_durante_test": 65,
+      "sql_total_ms": 7030.272,
+      "sql_mediana_ms": 103.351,
+      "sql_p95_ms": 132.105,
+      "sql_max_ms": 190.627
+    },
+    {
+      "prueba": "tests/test_analytics_probabilidades_integracion.py::test_probabilidades_aislamiento_multiempresa",
+      "duracion_test_ms": 15075.6,
+      "consultas_sql_durante_test": 143,
+      "sql_total_ms": 14667.245,
+      "sql_mediana_ms": 96.508,
+      "sql_p95_ms": 125.122,
+      "sql_max_ms": 220.215
+    },
+    {
+      "prueba": "tests/test_analytics_probabilidades_integracion.py::test_probabilidades_cero_denominador_condicional",
+      "duracion_test_ms": 8127.387,
+      "consultas_sql_durante_test": 77,
+      "sql_total_ms": 7885.526,
+      "sql_mediana_ms": 95.566,
+      "sql_p95_ms": 121.975,
+      "sql_max_ms": 205.159
+    },
+    {
+      "prueba": "tests/test_analytics_probabilidades_integracion.py::test_probabilidades_conteos_condicional_y_bayes",
+      "duracion_test_ms": 12399.572,
+      "consultas_sql_durante_test": 117,
+      "sql_total_ms": 12127.696,
+      "sql_mediana_ms": 96.388,
+      "sql_p95_ms": 178.589,
+      "sql_max_ms": 197.407
+    },
+    {
+      "prueba": "tests/test_analytics_probabilidades_integracion.py::test_probabilidades_dataset_vacio",
+      "duracion_test_ms": 7402.264,
+      "consultas_sql_durante_test": 69,
+      "sql_total_ms": 7180.453,
+      "sql_mediana_ms": 97.002,
+      "sql_p95_ms": 127.486,
+      "sql_max_ms": 208.651
+    },
+    {
+      "prueba": "tests/test_analytics_probabilidades_integracion.py::test_probabilidades_periodo_invalido",
+      "duracion_test_ms": 7304.745,
+      "consultas_sql_durante_test": 65,
+      "sql_total_ms": 7100.839,
+      "sql_mediana_ms": 97.903,
+      "sql_p95_ms": 128.435,
+      "sql_max_ms": 394.236
+    },
+    {
+      "prueba": "tests/test_analytics_probabilidades_integracion.py::test_probabilidades_periodo_utc",
+      "duracion_test_ms": 10098.152,
+      "consultas_sql_durante_test": 93,
+      "sql_total_ms": 9846.1,
+      "sql_mediana_ms": 98.476,
+      "sql_p95_ms": 120.006,
+      "sql_max_ms": 496.775
+    },
+    {
+      "prueba": "tests/test_analytics_probabilidades_integracion.py::test_probabilidades_rbac",
+      "duracion_test_ms": 3157.692,
+      "consultas_sql_durante_test": 30,
+      "sql_total_ms": 2996.251,
+      "sql_mediana_ms": 98.466,
+      "sql_p95_ms": 118.188,
+      "sql_max_ms": 120.286
+    },
+    {
+      "prueba": "tests/test_analytics_probabilidades_integracion.py::test_probabilidades_rechaza_sin_jwt",
+      "duracion_test_ms": 21.704,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_analytics_probabilidades_integracion.py::test_probabilidades_umbral_invalido",
+      "duracion_test_ms": 7556.038,
+      "consultas_sql_durante_test": 71,
+      "sql_total_ms": 7308.138,
+      "sql_mediana_ms": 95.939,
+      "sql_p95_ms": 125.197,
+      "sql_max_ms": 222.125
+    },
+    {
+      "prueba": "tests/test_analytics_resumen_integracion.py::test_aislamiento_multiempresa",
+      "duracion_test_ms": 20501.269,
+      "consultas_sql_durante_test": 136,
+      "sql_total_ms": 20055.06,
+      "sql_mediana_ms": 103.873,
+      "sql_p95_ms": 303.177,
+      "sql_max_ms": 426.818
+    },
+    {
+      "prueba": "tests/test_analytics_resumen_integracion.py::test_calculo_integracion_y_estados",
+      "duracion_test_ms": 9044.29,
+      "consultas_sql_durante_test": 90,
+      "sql_total_ms": 8782.011,
+      "sql_mediana_ms": 93.615,
+      "sql_p95_ms": 107.402,
+      "sql_max_ms": 189.717
+    },
+    {
+      "prueba": "tests/test_analytics_resumen_integracion.py::test_jwt_real_resumen_vacio",
+      "duracion_test_ms": 9270.26,
+      "consultas_sql_durante_test": 70,
+      "sql_total_ms": 8867.365,
+      "sql_mediana_ms": 95.546,
+      "sql_p95_ms": 229.44,
+      "sql_max_ms": 306.973
+    },
+    {
+      "prueba": "tests/test_analytics_resumen_integracion.py::test_limites_periodo_inclusivo",
+      "duracion_test_ms": 8396.722,
+      "consultas_sql_durante_test": 82,
+      "sql_total_ms": 8120.37,
+      "sql_mediana_ms": 93.455,
+      "sql_p95_ms": 125.012,
+      "sql_max_ms": 186.052
+    },
+    {
+      "prueba": "tests/test_analytics_resumen_integracion.py::test_periodo_invalido",
+      "duracion_test_ms": 8416.445,
+      "consultas_sql_durante_test": 65,
+      "sql_total_ms": 8193.37,
+      "sql_mediana_ms": 107.068,
+      "sql_p95_ms": 194.422,
+      "sql_max_ms": 317.061
+    },
+    {
+      "prueba": "tests/test_analytics_resumen_integracion.py::test_sin_jwt_rechazado",
+      "duracion_test_ms": 127.903,
+      "consultas_sql_durante_test": 0,
+      "sql_total_ms": 0,
+      "sql_mediana_ms": 0,
+      "sql_p95_ms": 0.0,
+      "sql_max_ms": 0
+    },
+    {
+      "prueba": "tests/test_analytics_resumen_integracion.py::test_sin_permiso_ventas_ver",
+      "duracion_test_ms": 3990.806,
+      "consultas_sql_durante_test": 30,
+      "sql_total_ms": 3814.961,
+      "sql_mediana_ms": 100.409,
+      "sql_p95_ms": 209.193,
+      "sql_max_ms": 246.269
+    }
+  ],
+  "fallos": [],
+  "modulo": "analytics",
+  "nota_adicional": "Perfil del cuerpo de pruebas. Incluye SQL de preparación dentro del test; algunos tests de dashboard usan mocks y no miden su consulta real. No representa latencia de Railway en producción."
+}
