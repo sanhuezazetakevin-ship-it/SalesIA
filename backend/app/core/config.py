@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     # Base exclusiva para pruebas
     TEST_DATABASE_URL: str | None = None
 
+    # Pool PostgreSQL configurable segun el plan de Railway
+    DB_POOL_SIZE: int = Field(default=5, ge=1, le=30)
+    DB_MAX_OVERFLOW: int = Field(default=5, ge=0, le=30)
+    DB_POOL_TIMEOUT: int = Field(default=30, ge=1, le=120)
+
     # Frontend: origenes separados por comas
     CORS_ORIGINS: str = "http://localhost:5173"
 
@@ -35,6 +40,13 @@ class Settings(BaseSettings):
         ge=1,
         le=30,
     )
+
+    @field_validator("JWT_ALGORITHM")
+    @classmethod
+    def validar_algoritmo_jwt(cls, value: str) -> str:
+        if value != "HS256":
+            raise ValueError("JWT_ALGORITHM debe ser HS256.")
+        return value
 
     @field_validator("ENVIRONMENT")
     @classmethod

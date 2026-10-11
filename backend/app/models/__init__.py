@@ -47,3 +47,5 @@ from app.models.orden_compra_detalle import OrdenCompraDetalle
 from app.models.recepcion_compra import RecepcionCompra
 from app.models.recepcion_compra_detalle import RecepcionCompraDetalle
 from app.models.pago_proveedor import PagoProveedor
+
+from app.models.notificacion_empresarial import NotificacionEmpresarial

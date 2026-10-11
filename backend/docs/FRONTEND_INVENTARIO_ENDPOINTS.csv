@@ -1,0 +1,89 @@
+﻿modulo,metodo,ruta,funcion,parametros,response_model
+analytics,GET,/api/analytics/resumen,resumen_analytics,"fecha_inicio, fecha_fin",AnalyticsResumenResponse
+analytics_distribuciones,GET,/api/analytics/distribuciones,consultar_distribuciones,"fecha_inicio, fecha_fin, variable, intervalos",AnalyticsDistribucionesResponse
+analytics_historial,POST,/api/analytics/historial/estadisticos,crear_estadistico,entrada,AnalisisGuardado
+analytics_historial,POST,/api/analytics/historial/probabilidades,crear_probabilidad,entrada,AnalisisGuardado
+analytics_historial,GET,/api/analytics/historial,consultar_historial,"tipo, limite",HistorialListado
+analytics_historial,GET,/api/analytics/historial/{tipo}/{analisis_id},consultar_analisis,"tipo, analisis_id",AnalisisGuardado
+analytics_probabilidades,GET,/api/analytics/probabilidades,consultar_probabilidades,"fecha_inicio, fecha_fin, umbral_importe",AnalyticsProbabilidadesResponse
+auditoria,GET,/api/auditoria,listar_auditoria,"limite, desplazamiento, accion, entidad, desde, hasta",HistorialAuditoria
+auth,POST,/api/auth/login,login,datos,LoginResponse
+auth,POST,/api/auth/refresh,refresh,datos,TokenResponse
+auth,POST,/api/auth/logout,logout,access_token,LogoutResponse
+auth,GET,/api/auth/me,me,access_token,MeResponse
+categorias,POST,/api/categorias,crear_categoria_http,"datos, usuario_actual",CategoriaResponse
+categorias,GET,/api/categorias,listar_categorias_http,"pagina, limite, busqueda, activo, usuario_actual",CategoriaListadoResponse
+categorias,GET,/api/categorias/{categoria_id},obtener_categoria_http,"categoria_id, usuario_actual",CategoriaResponse
+categorias,PATCH,/api/categorias/{categoria_id},actualizar_categoria_http,"categoria_id, datos, usuario_actual",CategoriaResponse
+categorias,DELETE,/api/categorias/{categoria_id},desactivar_categoria_http,"categoria_id, usuario_actual",CategoriaResponse
+clientes,POST,/api/clientes,crear_cliente_http,"datos, usuario_actual",ClienteResponse
+clientes,GET,/api/clientes,listar_clientes_http,"pagina, limite, busqueda, activo, usuario_actual",ClienteListadoResponse
+clientes,GET,/api/clientes/{cliente_id},obtener_cliente_http,"cliente_id, usuario_actual",ClienteResponse
+clientes,PATCH,/api/clientes/{cliente_id},actualizar_cliente_http,"cliente_id, datos, usuario_actual",ClienteResponse
+clientes,DELETE,/api/clientes/{cliente_id},desactivar_cliente_http,"cliente_id, usuario_actual",ClienteResponse
+dashboard,GET,/api/dashboard/ventas/serie,serie_ventas,"fecha_inicio, fecha_fin, agrupacion",SerieVentasResponse
+dashboard,GET,/api/dashboard/comercial,dashboard_comercial,"fecha_inicio, fecha_fin, limite",DashboardComercialResponse
+entregas,POST,/api/entregas/ventas/{venta_id}/confirmar,confirmar_entrega_http,"venta_id, datos, usuario_actual",EntregaConMovimientosResponse
+entregas,GET,/api/entregas/ventas/{venta_id},obtener_entrega_venta_http,"venta_id, usuario_actual",EntregaConMovimientosResponse
+entregas,GET,/api/entregas/{entrega_id},obtener_entrega_http,"entrega_id, usuario_actual",EntregaConMovimientosResponse
+insights,POST,/api/insights/generar,generar,entrada,list[InsightResponse]
+insights,GET,/api/insights,listar,"limite, estado, tipo",InsightsListado
+insights,GET,/api/insights/{insight_id},detalle,insight_id,InsightResponse
+insights,PATCH,/api/insights/{insight_id}/estado,cambiar_estado,"insight_id, entrada",InsightResponse
+mejoras145,GET,/api/mejoras/dashboard,dashboard,"fecha_inicio, fecha_fin",
+mejoras145,GET,/api/mejoras/inventario,inventario,"fecha_inicio, fecha_fin, horizonte, limite",
+mejoras145,GET,/api/mejoras/clientes,clientes,"fecha_inicio, fecha_fin, limite",
+mejoras145,GET,/api/mejoras/notificaciones,notificaciones,"fecha_inicio, fecha_fin",
+mejoras145,GET,/api/mejoras/seguridad,seguridad,"fecha_inicio, fecha_fin",
+notificaciones145,POST,/api/mejoras/notificaciones-persistentes/sincronizar,sincronizar_alertas,"fecha_inicio, fecha_fin",
+notificaciones145,GET,/api/mejoras/notificaciones-persistentes,historial,"solo_no_leidas, limite",
+notificaciones145,PATCH,/api/mejoras/notificaciones-persistentes/{notificacion_id}/leida,leida,notificacion_id,
+ordenes_compra,POST,/api/compras/ordenes,crear_orden_http,datos,OrdenCompraRespuesta
+ordenes_compra,GET,/api/compras/ordenes,listar_ordenes_http,"estado, proveedor_id, pagina, limite",OrdenCompraPagina
+ordenes_compra,GET,/api/compras/ordenes/{orden_id},obtener_orden_http,orden_id,OrdenCompraRespuesta
+ordenes_compra,POST,/api/compras/ordenes/{orden_id}/confirmar,confirmar_orden_http,orden_id,OrdenCompraRespuesta
+ordenes_compra,POST,/api/compras/ordenes/{orden_id}/cancelar,cancelar_orden_http,orden_id,OrdenCompraRespuesta
+pagos,POST,/api/pagos/ventas/{venta_id},registrar_pago_http,"venta_id, datos, idempotency_key, usuario_actual",PagoResponse
+pagos,GET,/api/pagos/ventas/{venta_id}/resumen,resumen_pagos_http,"venta_id, usuario_actual",ResumenPagosResponse
+pagos,POST,/api/pagos/{pago_id}/anular,anular_pago_http,"pago_id, datos, usuario_actual",PagoResponse
+pagos_proveedores,POST,/api/compras/pagos,crear_pago_proveedor_http,datos,PagoProveedorRespuesta
+pagos_proveedores,GET,/api/compras/pagos,listar_pagos_proveedores_http,"orden_id, estado, pagina, limite",PagoProveedorPagina
+pagos_proveedores,GET,/api/compras/pagos/{pago_id},obtener_pago_proveedor_http,pago_id,PagoProveedorRespuesta
+pagos_proveedores,POST,/api/compras/pagos/{pago_id}/anular,anular_pago_proveedor_http,pago_id,PagoProveedorRespuesta
+pedidos,POST,/api/pedidos,crear_pedido_http,"datos, usuario_actual",PedidoConDetallesResponse
+pedidos,GET,/api/pedidos,listar_pedidos_http,"pagina, limite, estado, cliente_id, busqueda, usuario_actual",PedidoListadoResponse
+pedidos,GET,/api/pedidos/{pedido_id},obtener_pedido_http,"pedido_id, usuario_actual",PedidoConDetallesResponse
+pedidos,POST,/api/pedidos/{pedido_id}/confirmar,confirmar_pedido_http,"pedido_id, usuario_actual",PedidoResponse
+pedidos,POST,/api/pedidos/{pedido_id}/cancelar,cancelar_pedido_http,"pedido_id, usuario_actual",PedidoResponse
+productos,POST,/api/productos,crear_producto_http,"datos, usuario_actual",ProductoResponse
+productos,GET,/api/productos,listar_productos_http,"pagina, limite, busqueda, categoria_id, tipo_item, activo, usuario_actual",ProductoListadoResponse
+productos,GET,/api/productos/{producto_id},obtener_producto_http,"producto_id, usuario_actual",ProductoResponse
+productos,PATCH,/api/productos/{producto_id},actualizar_producto_http,"producto_id, datos, usuario_actual",ProductoResponse
+productos,DELETE,/api/productos/{producto_id},desactivar_producto_http,"producto_id, usuario_actual",ProductoResponse
+proveedores,POST,/api/proveedores,crear_proveedor_http,datos,ProveedorRespuesta
+proveedores,GET,/api/proveedores,listar_proveedores_http,"pagina, limite, busqueda, activo",ProveedorPagina
+proveedores,GET,/api/proveedores/{proveedor_id},obtener_proveedor_http,proveedor_id,ProveedorRespuesta
+proveedores,PATCH,/api/proveedores/{proveedor_id},actualizar_proveedor_http,"proveedor_id, datos",ProveedorRespuesta
+proveedores,POST,/api/proveedores/{proveedor_id}/desactivar,desactivar_proveedor_http,proveedor_id,ProveedorRespuesta
+recepciones_compra,POST,/api/compras/recepciones,crear_recepcion_http,datos,RecepcionRespuesta
+recepciones_compra,GET,/api/compras/recepciones,listar_recepciones_http,"orden_id, pagina, limite",RecepcionPagina
+recepciones_compra,GET,/api/compras/recepciones/{recepcion_id},obtener_recepcion_http,recepcion_id,RecepcionRespuesta
+reportes,GET,/api/reportes/previsualizar,previsualizar,"tipo, fecha_inicio, fecha_fin, limite",
+reportes,POST,/api/reportes/generar,generar,"tipo, formato, fecha_inicio, fecha_fin",
+reportes,GET,/api/reportes/imprimible,imprimible,"tipo, fecha_inicio, fecha_fin",
+reportes,GET,/api/reportes,listar,limite,
+reportes,GET,/api/reportes/pdf-directo,pdf_directo,"tipo, fecha_inicio, fecha_fin",
+reportes,GET,/api/reportes/{reporte_id},detalle,reporte_id,
+reportes,GET,/api/reportes/{reporte_id}/descargar,descargar,reporte_id,
+roles,GET,/api/roles,listar_roles_http,usuario_actual,list[RolResponse]
+roles,GET,/api/roles/{rol_id}/permisos,listar_permisos_rol_http,"rol_id, usuario_actual",RolPermisosResponse
+roles,POST,/api/roles/asignaciones,asignar_rol_http,"datos, usuario_actual",AsignacionRolResponse
+roles,DELETE,/api/roles/asignaciones,revocar_rol_http,"datos, usuario_actual",RevocacionRolResponse
+semana08,GET,/api/analytics/semana08,estadistica_semana08,"fecha_inicio, fecha_fin, media_hipotetica, alfa",
+usuarios,POST,/api/invitaciones,crear_invitacion_http,"datos, administrador_id",CrearInvitacionResponse
+usuarios,POST,/api/auth/register-invitation,registro_invitacion_http,datos,RegistroInvitacionResponse
+usuarios,GET,/api/usuarios/pendientes,usuarios_pendientes_http,administrador_id,list[UsuarioPendienteResponse]
+usuarios,POST,/api/usuarios/{usuario_id}/aprobar,aprobar_usuario_http,"usuario_id, administrador_id",AprobarUsuarioResponse
+ventas,POST,/api/ventas/desde-pedido/{pedido_id},crear_venta_desde_pedido_http,"pedido_id, datos, usuario_actual",VentaConDetallesResponse
+ventas,GET,/api/ventas,listar_ventas_http,"pagina, limite, estado, estado_pago, cliente_id, busqueda, usuario_actual",VentaListadoResponse
+ventas,GET,/api/ventas/{venta_id},obtener_venta_http,"venta_id, usuario_actual",VentaConDetallesResponse

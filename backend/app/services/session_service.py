@@ -57,44 +57,29 @@ def _verificar_usuario_empresa(
     - Conserve al menos un rol de su propia empresa.
     """
 
+    # Una sola consulta en lugar de tres viajes a PostgreSQL.
+    # EXISTS evita duplicados cuando el usuario tiene varios roles.
+    # Las condiciones conservan el aislamiento de la empresa y los
+    # controles de usuario/empresa activos en cada validación.
     usuario = db.execute(
-        select(Usuario).where(
+        select(Usuario)
+        .join(
+            Empresa,
+            Empresa.id == Usuario.empresa_id,
+        )
+        .where(
             Usuario.id == usuario_id,
             Usuario.empresa_id == empresa_id,
             Usuario.activo.is_(True),
+            Empresa.id == empresa_id,
+            Empresa.activo.is_(True),
+            Usuario.roles.any(Rol.empresa_id == empresa_id),
         )
     ).scalar_one_or_none()
 
     if usuario is None:
         raise SesionInvalidaError(
-            "Usuario inexistente o no autorizado."
-        )
-
-    empresa = db.execute(
-        select(Empresa).where(
-            Empresa.id == empresa_id,
-            Empresa.activo.is_(True),
-        )
-    ).scalar_one_or_none()
-
-    if empresa is None:
-        raise SesionInvalidaError(
-            "Empresa inexistente o inactiva."
-        )
-
-    tiene_rol = db.scalar(
-        select(Usuario.id).where(
-            Usuario.id == usuario_id,
-            Usuario.empresa_id == empresa_id,
-            Usuario.roles.any(
-                Rol.empresa_id == empresa_id
-            ),
-        )
-    )
-
-    if tiene_rol is None:
-        raise SesionInvalidaError(
-            "El usuario no tiene un rol empresarial válido."
+            "Usuario, empresa o rol empresarial no autorizado."
         )
 
     return usuario
