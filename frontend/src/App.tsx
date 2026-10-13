@@ -4,6 +4,8 @@ import { LoginView } from './components/LoginView';
 import { DashboardView } from './components/DashboardView';
 import { CommercialView } from './components/CommercialView';
 import { AnalyticsView } from './components/AnalyticsView';
+import { UsersManagementView } from './components/UsersManagementView';
+import { InvitationRegistrationView } from './components/InvitationRegistrationView';
 import { ReportsView } from './components/ReportsView';
 import { api, authStorage } from './services/api';
 import { User } from './types/api';
@@ -64,6 +66,7 @@ export const App: React.FC = () => {
 
       <main>
         {!user && activeTab !== 'auth' && <div className="alert alert-info">Inicia sesión para acceder a este módulo.</div>}
+        {!user && activeTab === 'registro' && <InvitationRegistrationView />}
         {activeTab === 'auth' && (
           <LoginView
             user={user}
@@ -76,6 +79,7 @@ export const App: React.FC = () => {
         {user && activeTab === 'comercial' && <CommercialView />}
         {user && activeTab === 'analytics' && <AnalyticsView />}
         {user && activeTab === 'reportes' && <ReportsView />}
+        {user && activeTab === 'usuarios' && <UsersManagementView />}
       </main>
 
       <footer style={{ marginTop: '3rem', borderTop: '1px solid #ccc', paddingTop: '1rem', fontSize: '0.75rem', color: '#666', textAlign: 'center' }}>

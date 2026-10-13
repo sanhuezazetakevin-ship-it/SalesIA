@@ -255,3 +255,13 @@ export interface VentaListadoResponse {
 }
 
 export type ReporteTipo = 'VENTAS' | 'ESTADISTICO' | 'INVENTARIO' | 'CLIENTES' | 'RENDIMIENTO';
+
+
+// Fase 2: contratos de FastAPI para pruebas de usuarios y RBAC.
+export interface UsuarioPendiente { usuario_id: number; empresa_id: number; nombre: string; email: string; activo: boolean; created_at: string; }
+export interface InvitacionCreada { invitacion_id: number; empresa_id: number; email: string; token: string; fecha_expiracion: string; }
+export interface RegistroInvitacion { usuario_id: number; empresa_id: number; nombre: string; email: string; activo: boolean; estado: string; mensaje: string; }
+export interface AprobacionUsuario { usuario_id: number; empresa_id: number; nombre: string; email: string; activo: boolean; estado: string; aprobado_por_id: number; }
+export interface RolEmpresa { rol_id: number; empresa_id: number; nombre: string; descripcion: string | null; }
+export interface RolPermisos extends RolEmpresa { permisos: string[]; }
+export interface ResultadoRol { usuario_id: number; empresa_id: number; rol_id: number; rol_nombre: string; estado: string; administrador_id: number; sesiones_revocadas?: number; }
