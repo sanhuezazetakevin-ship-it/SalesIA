@@ -28,7 +28,8 @@ export const LoginView: React.FC<LoginViewProps> = ({
     try {
       const resp = await api.login(email, password);
       setMessage(`Inicio de sesión correcto. Token recibido (expira en ${resp.expires_in}s).`);
-      onLoginSuccess(resp.usuario);
+      const me = await api.getMe();
+      onLoginSuccess(me);
     } catch (err: unknown) {
       const errMessage = err instanceof Error ? err.message : 'Error desconocido al iniciar sesión';
       setError(errMessage);
@@ -54,17 +55,20 @@ export const LoginView: React.FC<LoginViewProps> = ({
   };
 
   const handleSimularError401 = async () => {
+    setLoading(true);
     setMessage(null);
     setError(null);
     try {
-      // Petición con token vacío
-      const oldToken = authStorage.getToken();
-      authStorage.clear();
-      await api.getMe();
-      authStorage.setToken(oldToken);
+      const status = await api.testUnauthorized();
+      if (status === 401) {
+        setMessage('Prueba 401 correcta: petición sin credenciales rechazada; sesión original intacta.');
+      } else {
+        setError(`Se esperaba HTTP 401, pero la API respondió HTTP ${status}.`);
+      }
     } catch (err: unknown) {
-      const errMessage = err instanceof Error ? err.message : 'Error recibido';
-      setError(`Prueba 401 completada con éxito: ${errMessage}`);
+      setError(err instanceof Error ? err.message : 'Error de conexión en la prueba 401');
+    } finally {
+      setLoading(false);
     }
   };
 

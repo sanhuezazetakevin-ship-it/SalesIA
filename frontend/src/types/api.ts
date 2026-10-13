@@ -11,7 +11,7 @@ export interface LoginResponse {
   refresh_token: string;
   token_type: string;
   expires_in: number;
-  usuario: User;
+  usuario: Omit<User, 'activo'>;
 }
 
 export interface MeResponse {
