@@ -10,6 +10,7 @@ from app.api.routes.clientes import router as clientes_router
 from app.api.routes.categorias import router as categorias_router
 from app.api.routes.productos import router as productos_router
 from app.api.routes.pedidos import router as pedidos_router
+from app.api.routes.configuracion_tributaria import router as configuracion_tributaria_router
 from app.core.openapi_contracts import instalar_openapi_contratos
 from app.api.routes.ventas import router as ventas_router
 from app.api.routes.pagos import router as pagos_router
@@ -52,6 +53,7 @@ app.include_router(clientes_router)
 app.include_router(categorias_router)
 app.include_router(productos_router)
 app.include_router(pedidos_router)
+app.include_router(configuracion_tributaria_router)
 app.include_router(ventas_router)
 app.include_router(pagos_router)
 app.include_router(entregas_router)

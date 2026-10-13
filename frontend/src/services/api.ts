@@ -13,6 +13,7 @@ import {
   ReporteTipo,
   UsuarioPendiente, InvitacionCreada, RegistroInvitacion, AprobacionUsuario, RolEmpresa, RolPermisos, ResultadoRol,
 } from '../types/api';
+import type { CatalogItem, PedidoResumen, VentaResumen, ResumenPagos, EntregaResumen } from '../types/commercial';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 const TOKEN_KEY = 'salesia_access_token';
@@ -184,6 +185,32 @@ export const api = {
     request('/api/roles/asignaciones', { method: 'POST', body: JSON.stringify({ usuario_id: usuarioId, rol_id: rolId }) }),
   revocarRol: (usuarioId: number, rolId: number): Promise<ResultadoRol> =>
     request('/api/roles/asignaciones', { method: 'DELETE', body: JSON.stringify({ usuario_id: usuarioId, rol_id: rolId }) }),
+
+  // Fase 3: contratos comerciales validados frente al backend.
+  listarCategorias: (): Promise<{categorias: CatalogItem[];total:number}> => request('/api/categorias?pagina=1&limite=100'),
+  crearCategoria: (datos: {nombre:string;descripcion?:string}): Promise<CatalogItem> => request('/api/categorias',{method:'POST',body:JSON.stringify(datos)}),
+  actualizarCategoria: (id:number, datos: Record<string,unknown>): Promise<CatalogItem> => request(`/api/categorias/${id}`,{method:'PATCH',body:JSON.stringify(datos)}),
+  desactivarCategoria: (id:number): Promise<CatalogItem> => request(`/api/categorias/${id}`,{method:'DELETE'}),
+  crearCliente: (datos: Record<string,unknown>): Promise<CatalogItem> => request('/api/clientes',{method:'POST',body:JSON.stringify(datos)}),
+  actualizarCliente: (id:number, datos: Record<string,unknown>): Promise<CatalogItem> => request(`/api/clientes/${id}`,{method:'PATCH',body:JSON.stringify(datos)}),
+  desactivarCliente: (id:number): Promise<CatalogItem> => request(`/api/clientes/${id}`,{method:'DELETE'}),
+  crearProducto: (datos: Record<string,unknown>): Promise<CatalogItem> => request('/api/productos',{method:'POST',body:JSON.stringify(datos)}),
+  actualizarProducto: (id:number, datos: Record<string,unknown>): Promise<CatalogItem> => request(`/api/productos/${id}`,{method:'PATCH',body:JSON.stringify(datos)}),
+  desactivarProducto: (id:number): Promise<CatalogItem> => request(`/api/productos/${id}`,{method:'DELETE'}),
+  consultarIgv: (): Promise<{id:number;codigo:string;nombre:string;tasa:string;activo:boolean;incluido_en_precio:boolean}|null> => request('/api/configuracion/tributaria/igv'),
+  actualizarIgv: (tasa:string): Promise<{id:number;tasa:string}> => request('/api/configuracion/tributaria/igv',{method:'PUT',body:JSON.stringify({tasa})}),
+  listarPedidos: (): Promise<{pedidos: PedidoResumen[];total:number}> => request('/api/pedidos?pagina=1&limite=100'),
+  obtenerPedido: (id:number): Promise<PedidoResumen & {detalles: unknown[]}> => request(`/api/pedidos/${id}`),
+  crearPedido: (datos: {cliente_id:number;detalles:{producto_id:number;cantidad:string;descuento:string}[];observaciones?:string}): Promise<PedidoResumen> => request('/api/pedidos',{method:'POST',body:JSON.stringify(datos)}),
+  confirmarPedido: (id:number): Promise<PedidoResumen> => request(`/api/pedidos/${id}/confirmar`,{method:'POST'}),
+  cancelarPedido: (id:number): Promise<PedidoResumen> => request(`/api/pedidos/${id}/cancelar`,{method:'POST'}),
+  crearVentaDesdePedido: (id:number): Promise<VentaResumen> => request(`/api/ventas/desde-pedido/${id}`,{method:'POST',body:JSON.stringify({})}),
+  obtenerVenta: (id:number): Promise<VentaResumen & {detalles:unknown[]}> => request(`/api/ventas/${id}`),
+  registrarPago: (id:number, datos:{monto:string;medio_pago:string;referencia_externa?:string}, clave:string): Promise<{id:number;codigo:string;estado:string}> => request(`/api/pagos/ventas/${id}`,{method:'POST',headers:{'Idempotency-Key':clave},body:JSON.stringify(datos)}),
+  resumenPagos: (id:number): Promise<ResumenPagos> => request(`/api/pagos/ventas/${id}/resumen`),
+  anularPago: (id:number,motivo:string): Promise<{id:number;estado:string}> => request(`/api/pagos/${id}/anular`,{method:'POST',body:JSON.stringify({motivo})}),
+  obtenerEntregaVenta: (id:number): Promise<EntregaResumen> => request(`/api/entregas/ventas/${id}`),
+  confirmarEntrega: (id:number): Promise<EntregaResumen> => request(`/api/entregas/ventas/${id}/confirmar`,{method:'POST',body:JSON.stringify({})}),
 
   getDashboardComercial: async (
     fechaInicio: string,

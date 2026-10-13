@@ -108,6 +108,11 @@ def _rechazar_operacion_pedido(
     # Conflictos de estado o negocio.
     conflictos = (
         "stock insuficiente",
+        "no tienen un registro de inventario",
+        "no se puede confirmar un pedido sin detalles",
+        "no contiene una tasa tributaria historica",
+        "impuesto activo incluido en el precio",
+        "no estan disponibles",
         "solo se pueden confirmar",
         "ya se encuentra cancelado",
         "no puede cancelarse",
@@ -129,9 +134,11 @@ def _rechazar_operacion_pedido(
             detail=mensaje,
         ) from exc
 
+    # Los errores controlados del dominio no deben ocultarse en pruebas
+    # funcionales: solo incluyen recursos ya filtrados por empresa.
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
-        detail="No fue posible completar la operación de pedidos.",
+        detail=mensaje,
     ) from exc
 
 
