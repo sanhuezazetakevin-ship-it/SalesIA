@@ -6,6 +6,7 @@ import { CommercialView } from './components/CommercialView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { UsersManagementView } from './components/UsersManagementView';
 import { InvitationRegistrationView } from './components/InvitationRegistrationView';
+import { CommercialTestingView } from './components/CommercialTestingView';
 import { ReportsView } from './components/ReportsView';
 import { api, authStorage } from './services/api';
 import { User } from './types/api';
@@ -80,6 +81,7 @@ export const App: React.FC = () => {
         {user && activeTab === 'analytics' && <AnalyticsView />}
         {user && activeTab === 'reportes' && <ReportsView />}
         {user && activeTab === 'usuarios' && <UsersManagementView />}
+        {user && activeTab === 'comercial-fase3' && <CommercialTestingView />}
       </main>
 
       <footer style={{ marginTop: '3rem', borderTop: '1px solid #ccc', paddingTop: '1rem', fontSize: '0.75rem', color: '#666', textAlign: 'center' }}>

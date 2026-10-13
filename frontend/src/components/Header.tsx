@@ -76,6 +76,7 @@ export const Header: React.FC<HeaderProps> = ({
           5. Reportes PDF
         </button>
         {user && <button className={`tab-btn ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => onSelectTab('usuarios')}>6. Usuarios y Roles (Pruebas)</button>}
+        {user && <button className={`tab-btn ${activeTab === 'comercial-fase3' ? 'active' : ''}`} onClick={() => onSelectTab('comercial-fase3')}>7. Módulos Comerciales (Pruebas)</button>}
         {!user && <button className={`tab-btn ${activeTab === 'registro' ? 'active' : ''}`} onClick={() => onSelectTab('registro')}>Registro por Invitación</button>}
       </nav>
     </header>
