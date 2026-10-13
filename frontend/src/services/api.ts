@@ -15,6 +15,8 @@ import {
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 const TOKEN_KEY = 'salesia_access_token';
+const REFRESH_KEY = 'salesia_refresh_token';
+let refreshInProgress: Promise<string> | null = null;
 
 export class ApiError extends Error {
   status: number;
@@ -41,10 +43,36 @@ export const authStorage = {
   },
   clear: (): void => {
     localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(REFRESH_KEY);
   },
+  getRefreshToken: (): string | null => sessionStorage.getItem(REFRESH_KEY),
+  setRefreshToken: (token: string): void => sessionStorage.setItem(REFRESH_KEY, token),
 };
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+async function renewAccessToken(): Promise<string> {
+  if (!refreshInProgress) {
+    refreshInProgress = (async () => {
+      const refreshToken = authStorage.getRefreshToken();
+      if (!refreshToken) throw new ApiError(401, 'Sesión expirada. Inicia sesión de nuevo.');
+      const response = await fetch(`${BASE_URL}/api/auth/refresh`, {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+      if (!response.ok) throw new ApiError(response.status, 'No fue posible renovar la sesión.');
+      const data: { access_token: string; refresh_token: string } = await response.json();
+      authStorage.setToken(data.access_token);
+      authStorage.setRefreshToken(data.refresh_token);
+      return data.access_token;
+    })().catch((error) => {
+      authStorage.clear();
+      throw error;
+    }).finally(() => { refreshInProgress = null; });
+  }
+  return refreshInProgress;
+}
+
+async function request<T>(endpoint: string, options: RequestInit = {}, retry = true): Promise<T> {
   const token = authStorage.getToken();
   const headers: Record<string, string> = {
     'Accept': 'application/json',
@@ -68,6 +96,11 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : 'Error desconocido de red';
     throw new ApiError(0, `Fallo de conexión con el backend en ${BASE_URL}: ${errorMsg}`);
+  }
+
+  if (response.status === 401 && retry && endpoint !== '/api/auth/login' && endpoint !== '/api/auth/logout' && authStorage.getRefreshToken()) {
+    const freshToken = await renewAccessToken();
+    return request<T>(endpoint, { ...options, headers: { ...(options.headers as Record<string, string> || {}), Authorization: `Bearer ${freshToken}` } }, false);
   }
 
   if (!response.ok) {
@@ -109,10 +142,17 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
-    if (data.access_token) {
-      authStorage.setToken(data.access_token);
-    }
+    if (data.access_token) authStorage.setToken(data.access_token);
+    if (data.refresh_token) authStorage.setRefreshToken(data.refresh_token);
     return data;
+  },
+
+  // Prueba aislada de 401: nunca altera los tokens de la sesión actual.
+  testUnauthorized: async (): Promise<number> => {
+    const response = await fetch(`${BASE_URL}/api/auth/me`, {
+      headers: { Accept: 'application/json' },
+    });
+    return response.status;
   },
 
   getMe: async (): Promise<MeResponse> => {
