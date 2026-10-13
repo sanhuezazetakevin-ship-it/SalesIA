@@ -11,6 +11,7 @@ import {
   ProductoListadoResponse,
   VentaListadoResponse,
   ReporteTipo,
+  UsuarioPendiente, InvitacionCreada, RegistroInvitacion, AprobacionUsuario, RolEmpresa, RolPermisos, ResultadoRol,
 } from '../types/api';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -98,7 +99,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}, retry = t
     throw new ApiError(0, `Fallo de conexión con el backend en ${BASE_URL}: ${errorMsg}`);
   }
 
-  if (response.status === 401 && retry && endpoint !== '/api/auth/login' && endpoint !== '/api/auth/logout' && authStorage.getRefreshToken()) {
+  if (response.status === 401 && retry && endpoint !== '/api/auth/login' && endpoint !== '/api/auth/logout' && endpoint !== '/api/auth/register-invitation' && authStorage.getRefreshToken()) {
     const freshToken = await renewAccessToken();
     return request<T>(endpoint, { ...options, headers: { ...(options.headers as Record<string, string> || {}), Authorization: `Bearer ${freshToken}` } }, false);
   }
@@ -168,6 +169,21 @@ export const api = {
       authStorage.clear();
     }
   },
+
+  // Administracion de usuarios / RBAC: endpoints reales del backend.
+  listarUsuariosPendientes: (): Promise<UsuarioPendiente[]> => request('/api/usuarios/pendientes'),
+  crearInvitacion: (email: string): Promise<InvitacionCreada> =>
+    request('/api/invitaciones', { method: 'POST', body: JSON.stringify({ email }) }),
+  registrarInvitado: (datos: { token: string; nombre: string; email: string; password: string }): Promise<RegistroInvitacion> =>
+    request('/api/auth/register-invitation', { method: 'POST', body: JSON.stringify(datos) }),
+  aprobarUsuario: (usuarioId: number): Promise<AprobacionUsuario> =>
+    request(`/api/usuarios/${usuarioId}/aprobar`, { method: 'POST' }),
+  listarRoles: (): Promise<RolEmpresa[]> => request('/api/roles'),
+  listarPermisosRol: (rolId: number): Promise<RolPermisos> => request(`/api/roles/${rolId}/permisos`),
+  asignarRol: (usuarioId: number, rolId: number): Promise<ResultadoRol> =>
+    request('/api/roles/asignaciones', { method: 'POST', body: JSON.stringify({ usuario_id: usuarioId, rol_id: rolId }) }),
+  revocarRol: (usuarioId: number, rolId: number): Promise<ResultadoRol> =>
+    request('/api/roles/asignaciones', { method: 'DELETE', body: JSON.stringify({ usuario_id: usuarioId, rol_id: rolId }) }),
 
   getDashboardComercial: async (
     fechaInicio: string,
