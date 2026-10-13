@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     DB_POOL_TIMEOUT: int = Field(default=30, ge=1, le=120)
 
     # Frontend: origenes separados por comas
-    CORS_ORIGINS: str = "http://localhost:5173"
+    CORS_ORIGINS: str = Field(..., env="CORS_ORIGINS")
 
     # Seguridad JWT
     JWT_SECRET_KEY: str = Field(min_length=32)
