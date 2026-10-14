@@ -7,6 +7,25 @@ import {
   Semana08Response,
 } from '../types/api';
 
+
+const money = (value: string | number | null | undefined) => {
+  const n = Number(value);
+  return value === null || value === undefined || !Number.isFinite(n) ? 'Sin datos' : new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN',maximumFractionDigits:2}).format(n);
+};
+const percentage = (value: string | number | null | undefined) => {
+  const n=Number(value);
+  return value === null || value === undefined || !Number.isFinite(n) ? 'Sin datos' : `${(n*100).toFixed(1)}%`;
+};
+const HorizontalChart: React.FC<{title:string;subtitle:string;items:{label:string;value:number;display?:string}[]}> = ({title,subtitle,items}) => {
+  const max = Math.max(1,...items.map(i=>i.value));
+  return <section className="insights-chart-panel"><div className="insights-chart-head"><h3>{title}</h3><p>{subtitle}</p></div>
+    {items.some(i=>i.value>0) ? <div className="insights-chart-bars">{items.map((item,index)=><div className="insights-chart-row" key={`${item.label}-${index}`}><div className="insights-chart-meta"><span>{item.label}</span><b>{item.display ?? item.value.toLocaleString('es-PE')}</b></div><div className="insights-chart-track"><div className="insights-chart-fill" style={{width:`${Math.max(0,item.value/max*100)}%`}}/></div></div>)}</div> : <div className="empty-state">No hay observaciones suficientes para representar este gráfico en el periodo seleccionado.</div>}
+  </section>;
+};
+const DonutChart: React.FC<{label:string;value:number;total:number}> = ({label,value,total}) => {
+ const pct=total>0 ? Math.min(100,Math.max(0,value/total*100)) : 0;
+ return <div className="insights-donut-wrap"><div role="img" aria-label={`${label}: ${pct.toFixed(1)} por ciento`} className="insights-donut" style={{background:`conic-gradient(var(--accent) 0% ${pct}%,var(--border-light) ${pct}% 100%)`}}><div><strong>{pct.toFixed(1)}%</strong><small>{label}</small></div></div><p>{total ? `${value} de ${total} operaciones`:'Sin observaciones en el periodo'}</p></div>
+};
 export const AnalyticsView: React.FC = () => {
   const hoy = new Date().toISOString().split('T')[0];
   const haceUnMes = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -37,6 +56,13 @@ export const AnalyticsView: React.FC = () => {
       if (activeSubTab === 'resumen') {
         const resp = await api.getAnalyticsResumen(fechaInicio, fechaFin);
         setResumen(resp);
+        // La vista principal presenta también el histograma y las proporciones de pagos.
+        const [dist, probs] = await Promise.allSettled([
+          api.getAnalyticsDistribuciones(fechaInicio, fechaFin, 'importe_venta', 6),
+          api.getAnalyticsProbabilidades(fechaInicio, fechaFin, umbralImporte),
+        ]);
+        setDistribucion(dist.status === 'fulfilled' ? dist.value : null);
+        setProbabilidades(probs.status === 'fulfilled' ? probs.value : null);
       } else if (activeSubTab === 'distribuciones') {
         const resp = await api.getAnalyticsDistribuciones(fechaInicio, fechaFin, variableDist, intervalos);
         setDistribucion(resp);
@@ -80,7 +106,7 @@ export const AnalyticsView: React.FC = () => {
         </div>
         <div style={{ overflowX: 'auto' }}>
           <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', maxHeight: '250px' }}>
-            <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#222" strokeWidth="2" />
+            <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="var(--border-color)" strokeWidth="2" />
             {lista.map((item, idx) => {
               const freq = item.frecuencia_absoluta ?? item.frecuencia ?? 0;
               const barH = (freq / maxFreq) * (height - padding * 2);
@@ -92,11 +118,11 @@ export const AnalyticsView: React.FC = () => {
 
               return (
                 <g key={idx}>
-                  <rect x={x} y={y} width={w} height={barH} fill="#111" stroke="#000" />
-                  <text x={x + w / 2} y={y - 5} fontSize="10" textAnchor="middle" fill="#111" fontWeight="bold">
+                  <rect x={x} y={y} width={w} height={barH} fill="var(--brand)" stroke="var(--accent)" />
+                  <text x={x + w / 2} y={y - 5} fontSize="10" textAnchor="middle" fill="var(--text-color)" fontWeight="bold">
                     {freq}
                   </text>
-                  <text x={x + w / 2} y={height - padding + 15} fontSize="9" textAnchor="middle" fill="#555">
+                  <text x={x + w / 2} y={height - padding + 15} fontSize="9" textAnchor="middle" fill="var(--muted)">
                     {label}
                   </text>
                   <title>{`${label}: ${freq} observaciones (${pct})`}</title>
@@ -111,8 +137,8 @@ export const AnalyticsView: React.FC = () => {
 
   return (
     <div>
-      <div className="section-box">
-        <h2 className="section-title">4. Analytics & Motor Estadístico (Semanas 07 & 08)</h2>
+      <div className="section-box analytics-workspace">
+        <div className="analytics-heading"><div><span className="analytics-eyebrow">INTELIGENCIA EMPRESARIAL / ANÁLISIS</span><h2>Centro de analítica</h2><p>Indicadores y distribuciones calculados a partir de las operaciones reales del periodo.</p></div><span className="analytics-live">Datos desde PostgreSQL</span></div>
 
         {/* Filtros de intervalo */}
         <div className="filter-bar">
@@ -157,7 +183,8 @@ export const AnalyticsView: React.FC = () => {
           </button>
         </div>
 
-        {error && <div className="alert alert-error">{error}</div>}
+        {error && <div className="alert alert-error" role="alert">{error}</div>}
+        {loading && <div className="analytics-loading" role="status">Actualizando estadísticas y gráficos…</div>}
 
         {/* SubTab A: Resumen (Media / Mediana) */}
         {activeSubTab === 'resumen' && resumen && (
@@ -165,14 +192,14 @@ export const AnalyticsView: React.FC = () => {
             <div className="grid-cards">
               <div className="card">
                 <div className="card-label">Total Ventas Confirmadas</div>
-                <div className="card-value">PEN {resumen.total_ventas}</div>
+                <div className="card-value">{money(resumen.total_ventas)}</div>
                 <div className="card-sub">{resumen.cantidad_ventas} transacciones analizadas</div>
               </div>
 
               <div className="card">
                 <div className="card-label">Media Aritmética (Ticket Promedio)</div>
                 <div className="card-value">
-                  {resumen.ticket_promedio ? `PEN ${resumen.ticket_promedio}` : 'N/A'}
+                  {money(resumen.ticket_promedio)}
                 </div>
                 <div className="card-sub">x̄ = (∑ xᵢ) / n</div>
               </div>
@@ -180,12 +207,19 @@ export const AnalyticsView: React.FC = () => {
               <div className="card">
                 <div className="card-label">Mediana de Ventas</div>
                 <div className="card-value">
-                  {resumen.mediana_ventas ? `PEN ${resumen.mediana_ventas}` : 'N/A'}
+                  {money(resumen.mediana_ventas)}
                 </div>
                 <div className="card-sub">Valor central ordenado (50% de corte)</div>
               </div>
             </div>
 
+            <div className="analytics-visual-grid">
+              {distribucion && (distribucion.distribucion?.length || distribucion.intervalos?.length) ? <HorizontalChart title="Distribución de importes" subtitle="Frecuencia de ventas según los intervalos calculados en el backend" items={(distribucion.distribucion || distribucion.intervalos || []).map((d,i)=>({label:d.etiqueta || d.categoria || (d.desde != null && d.hasta != null ? `${d.desde} – ${d.hasta}` : `Intervalo ${i+1}`),value:d.frecuencia_absoluta ?? d.frecuencia ?? 0}))}/> : <div className="insights-chart-panel"><h3>Distribución de importes</h3><div className="empty-state">No hay distribución disponible para este periodo o no se pudo consultar el servicio.</div></div>}
+              <section className="insights-chart-panel"><div className="insights-chart-head"><h3>Estado de cobro</h3><p>Porcentaje de operaciones pagadas en la muestra analizada</p></div>
+                {probabilidades ? <DonutChart label="Pagadas" value={probabilidades.conteos.pagado} total={probabilidades.total_observaciones}/> : <div className="empty-state">No hay datos de pagos para este periodo o no fue posible consultarlos.</div>}
+              </section>
+            </div>
+            <div className="insights-metric-note">Los gráficos utilizan respuestas de Analytics. No se generan valores de ejemplo ni porcentajes ficticios.</div>
             <div className="alert alert-info">
               <strong>Interpretación descriptiva:</strong> La media describe el importe monetario medio por transacción;
               la mediana indica el valor central libre del impacto de compras atípicas o de montos extremos.
@@ -277,6 +311,7 @@ export const AnalyticsView: React.FC = () => {
                   </div>
                 </div>
 
+                <div className="analytics-visual-grid"><HorizontalChart title="Probabilidades calculadas" subtitle="Comparación proporcional (0 a 100%)" items={[{label:'Pago completado',value:Number(probabilidades.probabilidad_pagado || 0),display:percentage(probabilidades.probabilidad_pagado)},{label:'Ticket superior al umbral',value:Number(probabilidades.probabilidad_importe_alto || 0),display:percentage(probabilidades.probabilidad_importe_alto)},{label:'Pagado dado ticket alto',value:Number(probabilidades.probabilidad_pagado_dado_alto || 0),display:percentage(probabilidades.probabilidad_pagado_dado_alto)},{label:'Alto dado pago (Bayes)',value:Number(probabilidades.bayes_importe_alto_dado_pagado || 0),display:percentage(probabilidades.bayes_importe_alto_dado_pagado)}]}/><section className="insights-chart-panel"><div className="insights-chart-head"><h3>Participación de tickets altos</h3><p>Muestra de ventas sobre el umbral</p></div><DonutChart label="Tickets altos" value={probabilidades.conteos.importe_alto} total={probabilidades.total_observaciones}/></section></div>
                 <div className="alert alert-info">
                   <strong>Fundamento matemático:</strong> Permite evaluar si una venta ya completada y cancelada
                   tiene alta o baja probabilidad de pertenecer a los tickets de alta magnitud, utilizando conteos exactos.
@@ -340,6 +375,7 @@ export const AnalyticsView: React.FC = () => {
                     </div>
                   </div>
 
+                  {semana08.resultados?.histograma?.etiquetas?.length ? <HorizontalChart title="Distribución de la muestra" subtitle={semana08.resultados.histograma.titulo || 'Frecuencia por intervalos'} items={semana08.resultados.histograma.etiquetas.map((label,i)=>({label,value:semana08.resultados?.histograma?.valores[i] || 0}))}/> : null}
                   {res.contraste && (
                     <div className="section-box" style={{ marginTop: '1rem' }}>
                       <h3 className="section-title">Resultado de la Prueba t de Student (SciPy)</h3>

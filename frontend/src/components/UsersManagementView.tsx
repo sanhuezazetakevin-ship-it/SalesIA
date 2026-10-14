@@ -5,6 +5,9 @@ import { InvitacionCreada, RolEmpresa, RolPermisos, UsuarioPendiente } from '../
 const errorText = (e: unknown) => e instanceof Error ? e.message : 'Error desconocido';
 
 export const UsersManagementView: React.FC = () => {
+  const [paginaPendientes,setPaginaPendientes] = useState(1);
+  const [paginaRoles,setPaginaRoles] = useState(1);
+  const limiteLista=10;
   const [pendientes, setPendientes] = useState<UsuarioPendiente[]>([]);
   const [roles, setRoles] = useState<RolEmpresa[]>([]);
   const [email, setEmail] = useState('');
@@ -63,12 +66,13 @@ export const UsersManagementView: React.FC = () => {
       <button onClick={() => void cargarPendientes()} disabled={pendingBusy}> {pendingBusy ? 'Consultando...' : 'Actualizar pendientes'} </button>
       <div style={{overflowX:'auto', marginTop:'0.75rem'}}>
         <table style={{width:'100%', borderCollapse:'collapse', fontSize:'0.85rem'}}><thead><tr><th>Usuario ID</th><th>Nombre</th><th>Correo</th><th>Fecha</th><th>Acción</th></tr></thead><tbody>
-          {pendientes.map(u => <tr key={u.usuario_id}><td>{u.usuario_id}</td><td>{u.nombre}</td><td>{u.email}</td><td>{new Date(u.created_at).toLocaleString()}</td><td><button disabled={busy} onClick={() => {
+          {pendientes.slice((paginaPendientes-1)*limiteLista,paginaPendientes*limiteLista).map(u => <tr key={u.usuario_id}><td>{u.usuario_id}</td><td>{u.nombre}</td><td>{u.email}</td><td>{new Date(u.created_at).toLocaleString()}</td><td><button disabled={busy} onClick={() => {
             if (!window.confirm(`¿Aprobar la cuenta de ${u.nombre}? Esta acción activa al usuario.`)) return;
             void run(async () => { const result = await api.aprobarUsuario(u.usuario_id); await cargarPendientes(); return `Usuario #${result.usuario_id}: ${result.estado}.`; });
           }}>Aprobar</button></td></tr>)}
           {!pendingBusy && pendientes.length === 0 && <tr><td colSpan={5}>No hay usuarios pendientes o no se pudieron consultar (comprueba el mensaje de error).</td></tr>}
         </tbody></table>
+        <div className="list-pagination-footer"><span>Página {paginaPendientes} de {Math.max(1,Math.ceil(pendientes.length/limiteLista))} · {pendientes.length} pendientes</span><button disabled={paginaPendientes<=1} onClick={()=>setPaginaPendientes(p=>p-1)}>Anterior</button><button disabled={paginaPendientes*limiteLista>=pendientes.length} onClick={()=>setPaginaPendientes(p=>p+1)}>Siguiente</button></div>
       </div>
     </div>
     <div className="section-box">
@@ -90,9 +94,9 @@ export const UsersManagementView: React.FC = () => {
       <h3 className="section-title">6-C. Roles y permisos</h3>
       <button onClick={() => void cargarRoles()} disabled={rolesBusy}>{rolesBusy ? 'Consultando...' : 'Actualizar roles'}</button>
       <div style={{overflowX:'auto', margin:'1rem 0'}}><table style={{width:'100%', fontSize:'0.85rem'}}><thead><tr><th>ID</th><th>Rol</th><th>Descripción</th><th>Permisos</th></tr></thead><tbody>
-        {roles.map(r => <tr key={r.rol_id}><td>{r.rol_id}</td><td>{r.nombre}</td><td>{r.descripcion || '—'}</td><td><button disabled={busy} onClick={() => void run(async () => { const result = await api.listarPermisosRol(r.rol_id); setPermisos(result); return `Permisos consultados: ${result.nombre}.`; })}>Ver permisos</button></td></tr>)}
+        {roles.slice((paginaRoles-1)*limiteLista,paginaRoles*limiteLista).map(r => <tr key={r.rol_id}><td>{r.rol_id}</td><td>{r.nombre}</td><td>{r.descripcion || '—'}</td><td><button disabled={busy} onClick={() => void run(async () => { const result = await api.listarPermisosRol(r.rol_id); setPermisos(result); return `Permisos consultados: ${result.nombre}.`; })}>Ver permisos</button></td></tr>)}
         {roles.length===0 && <tr><td colSpan={4}>Sin resultados. Comprueba que la cuenta tenga el permiso roles.ver.</td></tr>}
-      </tbody></table></div>
+      </tbody></table><div className="list-pagination-footer"><span>Página {paginaRoles} de {Math.max(1,Math.ceil(roles.length/limiteLista))} · {roles.length} roles</span><button disabled={paginaRoles<=1} onClick={()=>setPaginaRoles(p=>p-1)}>Anterior</button><button disabled={paginaRoles*limiteLista>=roles.length} onClick={()=>setPaginaRoles(p=>p+1)}>Siguiente</button></div></div>
       {permisos && <div className="alert alert-info"><strong>Permisos de {permisos.nombre}:</strong><ul style={{paddingLeft:'1.5rem'}}>{permisos.permisos.map(p => <li key={p}><code>{p}</code></li>)}</ul></div>}
       <h4 style={{margin:'1rem 0 0.5rem'}}>Asignar o revocar rol (testing)</h4>
       <p style={{fontSize:'0.85rem', marginBottom:'0.75rem'}}>Introduce el ID de un usuario activo de la misma empresa. No se permite modificar los propios roles. La aprobación de una cuenta no asigna roles automáticamente.</p>

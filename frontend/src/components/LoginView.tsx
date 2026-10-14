@@ -6,12 +6,14 @@ interface LoginViewProps {
   user: User | null;
   onLoginSuccess: (user: User) => void;
   onLogout: () => void;
+  publicMode?: boolean;
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({
   user,
   onLoginSuccess,
   onLogout,
+  publicMode = false,
 }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -75,7 +77,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
   return (
     <div>
       <div className="section-box">
-        <h2 className="section-title">1. Autenticación y Control de Sesión</h2>
+        <h2 className="section-title">{publicMode ? "Acceso seguro" : "1. Autenticación y Control de Sesión"}</h2>
 
         {message && <div className="alert alert-success">{message}</div>}
         {error && <div className="alert alert-error">{error}</div>}
@@ -128,19 +130,19 @@ export const LoginView: React.FC<LoginViewProps> = ({
               <button type="submit" className="btn-primary" disabled={loading}>
                 {loading ? 'Autenticando...' : 'Iniciar Sesión'}
               </button>
-              <button
+              {!publicMode && <button
                 type="button"
                 onClick={handleVerificarIdentidad}
                 disabled={loading || !authStorage.getToken()}
               >
                 Verificar Token Almacenado
-              </button>
+              </button>}
             </div>
           </form>
         )}
       </div>
 
-      <div className="section-box">
+      {!publicMode && <div className="section-box">
         <h3 className="section-title">Parámetros de Conexión</h3>
         <p style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}>
           Backend URL configurada: <code>{import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}</code>
@@ -149,7 +151,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
           * Las solicitudes envían el token JWT en la cabecera <code>Authorization: Bearer &lt;token&gt;</code>.
           Todas las consultas de la empresa quedan aisladas en base al usuario autenticado.
         </p>
-      </div>
+      </div>}
     </div>
   );
 };

@@ -7,6 +7,8 @@ export const CommercialView: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busqueda, setBusqueda] = useState('');
+  const [pagina,setPagina] = useState(1);
+  const [limite,setLimite] = useState(20);
 
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [totalClientes, setTotalClientes] = useState(0);
@@ -22,15 +24,15 @@ export const CommercialView: React.FC = () => {
     setError(null);
     try {
       if (subTab === 'clientes') {
-        const resp = await api.getClientes(1, 20, busqueda);
+        const resp = await api.getClientes(pagina, limite, busqueda);
         setClientes(resp.clientes || []);
         setTotalClientes(resp.total || 0);
       } else if (subTab === 'productos') {
-        const resp = await api.getProductos(1, 20, busqueda);
+        const resp = await api.getProductos(pagina, limite, busqueda);
         setProductos(resp.productos || []);
         setTotalProductos(resp.total || 0);
       } else if (subTab === 'ventas') {
-        const resp = await api.getVentas(1, 20);
+        const resp = await api.getVentas(pagina, limite);
         setVentas(resp.ventas || []);
         setTotalVentas(resp.total || 0);
       }
@@ -40,7 +42,7 @@ export const CommercialView: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [subTab, busqueda]);
+  }, [subTab, busqueda, pagina, limite]);
 
   useEffect(() => {
     cargarDatos();
@@ -55,19 +57,19 @@ export const CommercialView: React.FC = () => {
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
           <button
             className={subTab === 'clientes' ? 'btn-primary' : ''}
-            onClick={() => { setSubTab('clientes'); setBusqueda(''); }}
+            onClick={() => { setSubTab('clientes'); setPagina(1); setBusqueda(''); }}
           >
             Clientes ({totalClientes})
           </button>
           <button
             className={subTab === 'productos' ? 'btn-primary' : ''}
-            onClick={() => { setSubTab('productos'); setBusqueda(''); }}
+            onClick={() => { setSubTab('productos'); setPagina(1); setBusqueda(''); }}
           >
             Catálogo Productos ({totalProductos})
           </button>
           <button
             className={subTab === 'ventas' ? 'btn-primary' : ''}
-            onClick={() => { setSubTab('ventas'); setBusqueda(''); }}
+            onClick={() => { setSubTab('ventas'); setPagina(1); setBusqueda(''); }}
           >
             Registro de Ventas ({totalVentas})
           </button>
@@ -80,7 +82,7 @@ export const CommercialView: React.FC = () => {
               type="text"
               placeholder={`Buscar en ${subTab}...`}
               value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
+              onChange={(e) => {setPagina(1);setBusqueda(e.target.value);}}
               onKeyDown={(e) => e.key === 'Enter' && cargarDatos()}
               style={{ flex: 1 }}
             />
@@ -92,6 +94,7 @@ export const CommercialView: React.FC = () => {
 
         {error && <div className="alert alert-error">{error}</div>}
 
+        <div className="list-pagination-footer"><span>Total: {subTab==='clientes'?totalClientes:subTab==='productos'?totalProductos:totalVentas} registros</span><label>Por página <select value={limite} onChange={e=>{setPagina(1);setLimite(Number(e.target.value));}}><option value={10}>10</option><option value={20}>20</option><option value={50}>50</option></select></label><button disabled={pagina<=1||loading} onClick={()=>setPagina(p=>p-1)}>Anterior</button><span>Página {pagina} de {Math.max(1,Math.ceil((subTab==='clientes'?totalClientes:subTab==='productos'?totalProductos:totalVentas)/limite))}</span><button disabled={loading||pagina*limite>=(subTab==='clientes'?totalClientes:subTab==='productos'?totalProductos:totalVentas)} onClick={()=>setPagina(p=>p+1)}>Siguiente</button></div>
         {/* Tabla Clientes */}
         {subTab === 'clientes' && (
           <div>
