@@ -64,8 +64,33 @@ def _grafico_barras(puntos):
     return d
 
 
+def _grafico_participacion(puntos):
+    """Segundo gráfico vectorial: participación relativa de las categorías de la consulta."""
+    from reportlab.graphics.shapes import Drawing, Wedge, String, Rect
+    from reportlab.lib import colors
+    d = Drawing(505, 170)
+    valores = [(str(n), max(0.0, float(v))) for n, v in puntos]
+    total = sum(v for _, v in valores)
+    if total <= 0:
+        d.add(String(14, 85, 'Sin datos suficientes para calcular la participación.', fontSize=10))
+        return d
+    import math
+    paleta = ['#1764DC', '#05B4D7', '#284F94', '#5B8EE6', '#79BAC7', '#94A7C8', '#B0CAEA', '#D2E4F5']
+    a = 90.0
+    for i, (nombre, valor) in enumerate(valores[:8]):
+        if valor <= 0:
+            continue
+        angulo = valor / total * 360
+        d.add(Wedge(94, 86, 65, a, a + angulo, fillColor=colors.HexColor(paleta[i]), strokeColor=colors.white, strokeWidth=.8))
+        a += angulo
+        y = 151 - i * 18
+        d.add(Rect(206, y - 3, 9, 9, fillColor=colors.HexColor(paleta[i]), strokeColor=None))
+        d.add(String(224, y, f'{nombre[:24]}  {valor / total * 100:.1f}%', fontSize=9, fillColor=colors.HexColor('#243A5B')))
+    return d
+
+
 def _construir_pdf(tipo, inicio, fin, cantidad, total, puntos):
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, KeepTogether
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
     from reportlab.lib.styles import getSampleStyleSheet
     from reportlab.lib.pagesizes import A4
     from reportlab.lib import colors
@@ -77,15 +102,29 @@ def _construir_pdf(tipo, inicio, fin, cantidad, total, puntos):
     promedio = (total / cantidad) if cantidad else Decimal(0)
     titulo = {'VENTAS': 'Ventas', 'ESTADISTICO': 'Estadísticas', 'INVENTARIO': 'Productos vendidos',
               'CLIENTES': 'Clientes', 'RENDIMIENTO': 'Vendedores'}[tipo]
+    styles['Title'].textColor = colors.HexColor('#173E84')
+    styles['Heading2'].textColor = colors.HexColor('#173E84')
+    resumen_tabla = Table([
+        ['VENTAS CONFIRMADAS', 'IMPORTE TOTAL', 'TICKET PROMEDIO'],
+        [f'{cantidad:,}', f'S/ {total:,.2f}', f'S/ {promedio:,.2f}' if cantidad else 'N/D'],
+    ], colWidths=[169,169,169], rowHeights=[25,38])
+    resumen_tabla.setStyle(TableStyle([
+        ('BACKGROUND',(0,0),(-1,0),colors.HexColor('#173E84')),
+        ('TEXTCOLOR',(0,0),(-1,0),colors.white),
+        ('BACKGROUND',(0,1),(-1,1),colors.HexColor('#EDF4FE')),
+        ('TEXTCOLOR',(0,1),(-1,1),colors.HexColor('#173E84')),
+        ('FONTSIZE',(0,0),(-1,0),9),('FONTSIZE',(0,1),(-1,1),14),
+        ('FONTNAME',(0,0),(-1,-1),'Helvetica-Bold'),
+        ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
+        ('LEFTPADDING',(0,0),(-1,-1),12),
+    ]))
     elementos = [Paragraph('SalesIA Enterprise | Reporte ejecutivo', styles['Title']),
         Paragraph(escape(titulo), styles['Heading2']),
         Paragraph(f'Período: {inicio.isoformat()} a {fin.isoformat()} | Moneda: PEN | Fechas UTC', styles['Normal']),
         Spacer(1, 16), Paragraph('Resumen del período', styles['Heading2']),
-        Paragraph(f'Ventas confirmadas: {cantidad:,}', styles['Normal']),
-        Paragraph(f'Importe total vendido: S/ {total:,.2f}', styles['Normal']),
-        Paragraph(f'Ticket promedio: S/ {promedio:,.2f}' if cantidad else 'Ticket promedio: sin ventas registradas', styles['Normal']),
-        Spacer(1, 14), Paragraph('Información visual', styles['Heading2']),
-        _grafico_barras(puntos), Spacer(1, 12), Paragraph('¿Qué indican estos resultados?', styles['Heading2'])]
+        resumen_tabla, Spacer(1, 18), Paragraph('Evolución o desglose por grupo', styles['Heading2']),
+        _grafico_barras(puntos), Spacer(1, 10), Paragraph('Participación porcentual del desglose', styles['Heading2']),
+        _grafico_participacion(puntos), Spacer(1, 12), Paragraph('¿Qué indican estos resultados?', styles['Heading2'])]
     if not cantidad:
         explicacion = 'No se encontraron ventas confirmadas en este período. El gráfico no representa valores inventados.'
     elif not puntos:
@@ -96,9 +135,17 @@ def _construir_pdf(tipo, inicio, fin, cantidad, total, puntos):
         explicacion = (f'El grupo con mayor valor representado es {destacado}, con '
                        f'{valor:,.0f} {unidad}. Los gráficos corresponden únicamente al período seleccionado.')
     elementos.append(Paragraph(escape(explicacion), styles['BodyText']))
-    elementos.append(Spacer(1, 14))
-    elementos.append(Paragraph('Nota: información descriptiva basada en ventas confirmadas; no constituye una predicción.', styles['Italic']))
-    doc.build(elementos)
+    def pie(canvas, documento):
+        canvas.saveState()
+        w, h = A4
+        canvas.setStrokeColor(colors.HexColor('#D8E3F1'))
+        canvas.line(43, 37, w-43, 37)
+        canvas.setFont('Helvetica', 8)
+        canvas.setFillColor(colors.HexColor('#64748B'))
+        canvas.drawString(43, 24, 'SalesIA Enterprise | Datos descriptivos, no predicción')
+        canvas.drawRightString(w-43, 24, f'Página {documento.page}')
+        canvas.restoreState()
+    doc.build(elementos, onFirstPage=pie, onLaterPages=pie)
     return stream.getvalue()
 
 

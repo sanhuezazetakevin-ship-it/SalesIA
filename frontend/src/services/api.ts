@@ -15,6 +15,12 @@ import {
 } from '../types/api';
 import type { CatalogItem, PedidoResumen, VentaResumen, ResumenPagos, EntregaResumen } from '../types/commercial';
 
+export interface InsightF7 {id:number;tipo_insight:string;prioridad:string;titulo:string;descripcion:string;recomendacion:string|null;estado:string;created_at:string;analisis_estadistico_id:number|null;analisis_probabilidad_id:number|null;datos_soporte:Record<string,unknown>|null}
+export interface NotificacionF7 {id:number;codigo:string;titulo:string;descripcion:string;nivel:string;leida:boolean;created_at:string;leida_at:string|null}
+export interface AnalisisF7 {id:number;tipo:string;estado:string;resultados:Record<string,unknown>;created_at:string|null}
+export interface EventoAuditoriaF7 {id:number;usuario_id:number|null;accion:string;entidad:string;entidad_id:number|null;descripcion:string|null;origen:string;created_at:string}
+export interface AuditoriaF7 {total:number;limite:number;desplazamiento:number;items:EventoAuditoriaF7[]}
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 const TOKEN_KEY = 'salesia_access_token';
 const REFRESH_KEY = 'salesia_refresh_token';
@@ -138,7 +144,42 @@ async function request<T>(endpoint: string, options: RequestInit = {}, retry = t
   return response.json() as Promise<T>;
 }
 
+export interface ReportePreviewF8 { tipo: string; fecha_inicio:string; fecha_fin:string; columnas:string[]; total_filas:number; filas:Array<Array<string | number | boolean | null>>; moneda:string; zona_horaria:string }
+export interface ReporteHistorialF8 { id:number; nombre:string; tipo:string; formato:string; estado:string; tamano_bytes:number|null; created_at:string }
+export interface ReporteGeneradoF8 { id:number; tipo:string; formato:string; estado:string; tamano_bytes:number|null }
+
+async function descargarBinarioF8(endpoint:string, nombre:string):Promise<void> {
+  let token = authStorage.getToken();
+  const get = (t:string|null) => fetch(`${BASE_URL}${endpoint}`, { headers: { ...(t ? {Authorization:`Bearer ${t}`} : {}), Accept:'application/octet-stream,application/pdf,*/*' } });
+  let response = await get(token);
+  if (response.status===401 && authStorage.getRefreshToken()) {
+    token = await renewAccessToken();
+    response = await get(token);
+  }
+  if (!response.ok) {
+    let detalle = `HTTP ${response.status}`;
+    try { const body = await response.json(); detalle = typeof body.detail==='string' ? body.detail : detalle; } catch { /* respuesta no JSON */ }
+    throw new ApiError(response.status, detalle);
+  }
+  const file = await response.blob();
+  if (file.size===0) throw new Error('El archivo recibido está vacío.');
+  const url = URL.createObjectURL(file);
+  const anchor = document.createElement('a');
+  anchor.href=url; anchor.download=nombre;
+  document.body.appendChild(anchor); anchor.click(); anchor.remove();
+  window.setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
 export const api = {
+  previsualizarReporteF8: (tipo:ReporteTipo, inicio:string, fin:string, limite=100):Promise<ReportePreviewF8> =>
+    request(`/api/reportes/previsualizar?tipo=${tipo}&fecha_inicio=${inicio}&fecha_fin=${fin}&limite=${limite}`),
+  historialReportesF8: (limite=100):Promise<{items:ReporteHistorialF8[]}> =>
+    request(`/api/reportes?limite=${limite}`),
+  generarReporteF8: (tipo:ReporteTipo, formato:'CSV'|'XLSX'|'PDF', inicio:string, fin:string):Promise<ReporteGeneradoF8> =>
+    request(`/api/reportes/generar?tipo=${tipo}&formato=${formato}&fecha_inicio=${inicio}&fecha_fin=${fin}`, {method:'POST'}),
+  descargarReporteGuardadoF8: (id:number, formato:string):Promise<void> =>
+    descargarBinarioF8(`/api/reportes/${id}/descargar`, `SalesIA_reporte_${id}.${formato.toLowerCase()}`),
+
   login: async (email: string, password: string): Promise<LoginResponse> => {
     const data = await request<LoginResponse>('/api/auth/login', {
       method: 'POST',
@@ -212,6 +253,13 @@ export const api = {
   obtenerEntregaVenta: (id:number): Promise<EntregaResumen> => request(`/api/entregas/ventas/${id}`),
   confirmarEntrega: (id:number): Promise<EntregaResumen> => request(`/api/entregas/ventas/${id}/confirmar`,{method:'POST',body:JSON.stringify({})}),
 
+  listarCategoriasPagina: (pagina = 1, limite = 20, busqueda = ''): Promise<{categorias:{id:number;nombre:string;descripcion?:string|null;activo:boolean}[];total:number}> =>
+    request(`/api/categorias?pagina=${pagina}&limite=${limite}${busqueda.trim()?`&busqueda=${encodeURIComponent(busqueda.trim())}`:''}`),
+  getInventarioVisual: (inicio:string,fin:string): Promise<{items:{producto_id:number;nombre:string;[key:string]:unknown}[]}> =>
+    request(`/api/mejoras/inventario?fecha_inicio=${inicio}&fecha_fin=${fin}&limite=100`),
+  getClientesVisual: (inicio:string,fin:string): Promise<{items:{cliente_id:number;nombre:string;segmento?:string;[key:string]:unknown}[]}> =>
+    request(`/api/mejoras/clientes?fecha_inicio=${inicio}&fecha_fin=${fin}&limite=100`),
+
   getDashboardComercial: async (
     fechaInicio: string,
     fechaFin: string,
@@ -275,6 +323,20 @@ export const api = {
     return request<Semana08Response>(url);
   },
 
+  getProveedores: (pagina=1,limite=20,busqueda=''):Promise<{items:import('../components/PurchasesView').Proveedor[];total:number;pagina:number;limite:number}> => request(`/api/proveedores?pagina=${pagina}&limite=${limite}&busqueda=${encodeURIComponent(busqueda)}`),
+  crearProveedor: (datos:Record<string,unknown>):Promise<unknown> => request('/api/proveedores',{method:'POST',body:JSON.stringify(datos)}),
+  editarProveedor: (id:number,datos:Record<string,unknown>):Promise<unknown> => request(`/api/proveedores/${id}`,{method:'PATCH',body:JSON.stringify(datos)}),
+  desactivarProveedor: (id:number):Promise<unknown> => request(`/api/proveedores/${id}/desactivar`,{method:'POST'}),
+  getOrdenesCompra: (pagina=1,limite=100):Promise<{items:import('../components/PurchasesView').Orden[];total:number}> => request(`/api/compras/ordenes?pagina=${pagina}&limite=${limite}`),
+  crearOrdenCompra: (datos:unknown):Promise<unknown> => request('/api/compras/ordenes',{method:'POST',body:JSON.stringify(datos)}),
+  confirmarOrdenCompra: (id:number):Promise<unknown> => request(`/api/compras/ordenes/${id}/confirmar`,{method:'POST'}),
+  cancelarOrdenCompra: (id:number):Promise<unknown> => request(`/api/compras/ordenes/${id}/cancelar`,{method:'POST'}),
+  getRecepcionesCompra: (pagina=1,limite=100):Promise<{items:import('../components/PurchasesView').Recepcion[];total:number}> => request(`/api/compras/recepciones?pagina=${pagina}&limite=${limite}`),
+  crearRecepcionCompra: (datos:unknown):Promise<unknown> => request('/api/compras/recepciones',{method:'POST',body:JSON.stringify(datos)}),
+  getPagosProveedor: (pagina=1,limite=100):Promise<{items:import('../components/PurchasesView').Pago[];total:number}> => request(`/api/compras/pagos?pagina=${pagina}&limite=${limite}`),
+  crearPagoProveedor: (datos:unknown):Promise<unknown> => request('/api/compras/pagos',{method:'POST',body:JSON.stringify(datos)}),
+  anularPagoProveedor: (id:number):Promise<unknown> => request(`/api/compras/pagos/${id}/anular`,{method:'POST'}),
+
   getClientes: async (
     pagina: number = 1,
     limite: number = 20,
@@ -305,6 +367,38 @@ export const api = {
   ): Promise<VentaListadoResponse> => {
     return request<VentaListadoResponse>(`/api/ventas?pagina=${pagina}&limite=${limite}`);
   },
+
+  // Fase 7: insights, notificaciones, historial de analisis y auditoria.
+  listarInsights: (limite = 50): Promise<{items: InsightF7[];limite:number}> =>
+    request(`/api/insights?limite=${limite}`),
+  generarInsights: (tipo: 'estadistico'|'probabilidad', analisisId: number): Promise<InsightF7[]> =>
+    request('/api/insights/generar', {method:'POST',body:JSON.stringify({tipo,analisis_id:analisisId})}),
+  actualizarInsight: (id: number, estado: 'REVISADO'|'DESCARTADO'): Promise<InsightF7> =>
+    request(`/api/insights/${id}/estado`,{method:'PATCH',body:JSON.stringify({estado})}),
+  listarNotificaciones: (soloNoLeidas=false): Promise<{items: NotificacionF7[];total_mostrado:number}> =>
+    request(`/api/mejoras/notificaciones-persistentes?limite=100&solo_no_leidas=${soloNoLeidas}`),
+  sincronizarNotificaciones: (inicio:string,fin:string):Promise<{nuevas:number;detectadas:number;explicacion:string}> =>
+    request(`/api/mejoras/notificaciones-persistentes/sincronizar?fecha_inicio=${inicio}&fecha_fin=${fin}`,{method:'POST'}),
+  marcarNotificacionLeida: (id:number):Promise<NotificacionF7> =>
+    request(`/api/mejoras/notificaciones-persistentes/${id}/leida`,{method:'PATCH'}),
+  listarHistorialAnalisis: (tipo:'estadistico'|'probabilidad'):Promise<{items:AnalisisF7[];tipo:string}> =>
+    request(`/api/analytics/historial?tipo=${tipo}&limite=50`),
+  crearAnalisisEstadistico: (inicio:string,fin:string,nombre:string):Promise<AnalisisF7> =>
+    request('/api/analytics/historial/estadisticos',{method:'POST',body:JSON.stringify({fecha_inicio:inicio,fecha_fin:fin,nombre})}),
+  crearAnalisisProbabilidad: (inicio:string,fin:string,umbral:string):Promise<AnalisisF7> =>
+    request('/api/analytics/historial/probabilidades',{method:'POST',body:JSON.stringify({fecha_inicio:inicio,fecha_fin:fin,umbral_importe:umbral})}),
+  listarAuditoria: (desplazamiento=0,limite=25,accion=''):Promise<AuditoriaF7> =>
+    request(`/api/auditoria?desplazamiento=${desplazamiento}&limite=${limite}${accion?`&accion=${encodeURIComponent(accion)}`:''}`),
+
+  // Cierre funcional: inventario y vendedores. Paginación real desde FastAPI.
+  listarVendedoresOperativos: (pagina=1,limite=20,busqueda=''):Promise<{total:number;pagina:number;limite:number;items:{id:number;nombre:string;email:string;activo:boolean}[]}> =>
+    request(`/api/vendedores-operativos?pagina=${pagina}&limite=${limite}&busqueda=${encodeURIComponent(busqueda)}`),
+  listarInventarioOperativo: (pagina=1,limite=20,busqueda=''):Promise<{total:number;pagina:number;limite:number;items:{inventario_id:number|null;producto_id:number;producto:string;sku:string;cantidad_disponible:string}[]}> =>
+    request(`/api/inventario-operativo?pagina=${pagina}&limite=${limite}&busqueda=${encodeURIComponent(busqueda)}`),
+  listarMovimientosOperativos: (pagina=1,limite=20):Promise<{total:number;pagina:number;limite:number;items:{id:number;producto_id:number;tipo:string;cantidad_delta:string;motivo:string;referencia:string|null;fecha:string}[]}> =>
+    request(`/api/inventario-operativo/movimientos?pagina=${pagina}&limite=${limite}`),
+  ajustarInventario: (datos:{producto_id:number;cantidad_delta:string;motivo:string;referencia?:string}):Promise<{producto_id:number;stock_anterior:string;stock_actual:string;delta:string}> =>
+    request('/api/inventario-operativo/ajustes',{method:'POST',body:JSON.stringify(datos)}),
 
   descargarReportePdf: async (
     tipo: ReporteTipo,

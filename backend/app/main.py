@@ -1,5 +1,6 @@
 
 from fastapi import FastAPI
+from app.api.routes.alta_empresas import router as alta_empresas_router
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
@@ -32,6 +33,9 @@ from app.api.routes.mejoras145 import router as mejoras145_router
 from app.api.routes.semana08 import router as semana08_router
 from app.api.routes.notificaciones145 import router as notificaciones145_router
 
+from app.api.routes.inventario_operativo import router as inventario_operativo_router
+from app.api.routes.vendedores_operativos import router as vendedores_operativos_router
+
 app = FastAPI(
     title=settings.APP_NAME,
     version="1.0.0",
@@ -46,7 +50,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(inventario_operativo_router)
+app.include_router(vendedores_operativos_router)
 app.include_router(auth_router)
+app.include_router(alta_empresas_router)
 app.include_router(usuarios_router)
 app.include_router(roles_router)
 app.include_router(clientes_router)
