@@ -18,9 +18,12 @@ class Settings(BaseSettings):
     TEST_DATABASE_URL: str | None = None
 
     # Pool PostgreSQL configurable segun el plan de Railway
-    DB_POOL_SIZE: int = Field(default=5, ge=1, le=30)
-    DB_MAX_OVERFLOW: int = Field(default=5, ge=0, le=30)
+    DB_POOL_SIZE: int = Field(default=2, ge=1, le=30)
+    DB_MAX_OVERFLOW: int = Field(default=1, ge=0, le=30)
     DB_POOL_TIMEOUT: int = Field(default=30, ge=1, le=120)
+
+    # Proteccion opcional para demostraciones con una base de testing especifica.
+    DEMO_EXPECTED_SUPABASE_REF: str | None = None
 
     # Frontend: origenes separados por comas
     CORS_ORIGINS: str = "http://localhost:5173"
@@ -71,6 +74,13 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validar_produccion(self):
+        if self.DEMO_EXPECTED_SUPABASE_REF:
+            from scripts.verificar_aislamiento_real import obtener_referencia_supabase
+            expected = self.DEMO_EXPECTED_SUPABASE_REF.strip()
+            actual = obtener_referencia_supabase(self.DATABASE_URL)
+            if not actual or actual != expected:
+                raise ValueError("SEGURIDAD DEMO: DATABASE_URL no pertenece al proyecto Supabase autorizado.")
+
         if not self.cors_origins_list:
             raise ValueError(
                 "Debe configurarse al menos un origen CORS."

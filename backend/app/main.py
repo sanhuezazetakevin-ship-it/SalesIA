@@ -1,7 +1,9 @@
 
 from fastapi import FastAPI
 from app.api.routes.alta_empresas import router as alta_empresas_router
+from app.api.routes.plataforma_empresas import router as plataforma_empresas_router
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 from app.core.config import settings
 from app.api.routes.auth import router as auth_router
@@ -42,6 +44,8 @@ app = FastAPI(
     description="Backend empresarial SalesIA",
 )
 
+app.add_middleware(GZipMiddleware, minimum_size=1200)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -54,6 +58,7 @@ app.include_router(inventario_operativo_router)
 app.include_router(vendedores_operativos_router)
 app.include_router(auth_router)
 app.include_router(alta_empresas_router)
+app.include_router(plataforma_empresas_router)
 app.include_router(usuarios_router)
 app.include_router(roles_router)
 app.include_router(clientes_router)
@@ -100,6 +105,22 @@ def health():
 
 
 
+
+
+@app.get("/ready", tags=["Sistema"])
+def ready():
+    """Comprueba acceso SQL; no publica detalles internos del servidor."""
+    from fastapi import HTTPException
+    from sqlalchemy import text
+    from sqlalchemy.exc import SQLAlchemyError
+    from app.database.connection import engine
+
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=503, detail="database_unavailable") from exc
+    return {"status": "ready", "database": "ok"}
 
 
 @app.middleware("http")
